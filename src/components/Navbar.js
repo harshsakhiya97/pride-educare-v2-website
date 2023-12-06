@@ -24,13 +24,13 @@ const Navbar = () => {
     <>
       <nav className="navbar navbar-expand-lg">
         <div className="container mt-1">
-          <div className="col-2">
+          <div className="col-sm-2 col-12">
             <a className="navbar-brand" href="/">
               <img src={require("../assets/logo.png")} alt="Logo" />
             </a>
           </div>
 
-          <div className="col-5">
+          <div className="col-sm-5 col-12">
             <form onSubmit={searchForCourse}>
               <div className="row">
                 <div className="col-10">
@@ -64,7 +64,7 @@ const Navbar = () => {
             </form>
           </div>
 
-          <div className="col-1">
+          <div className="col-sm-1 col-4">
             <a href="/courses" className="nav-link">
               Courses
             </a>
@@ -92,13 +92,13 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <div className="col-1">
+              <div className="col-sm-1 col-4">
                 <Link to="/login" className="btn-outline">
                   Login
                 </Link>
               </div>
 
-              <div className="col-2">
+              <div className="col-sm-2 col-4">
                 <Link to="/register" className="btn-blue">
                   Sign Up For Free
                 </Link>

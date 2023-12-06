@@ -2308,11 +2308,74 @@ svg.edit-icon {
 }
 
 @media screen and (max-width: 900px) {
+  .navbar-brand{
+    display: block;
+    text-align: center;
+    margin: 0 0 10px 0;
+  }
+  /* .navbar>.container{
+    gap: 10px;
+  } */
+  .navbar-brand>img{
+    width: 150px;
+  }
+  .nav-link{
+    display: block;
+  }
+  form{
+    margin-bottom: 10px;
+  }
+  a.btn-outline,
+  a.btn-blue{
+    min-width: 100px;
+    display: inline-block;
+    font-size: 10px;
+    line-height: 14px;
+    padding: 10px;
+    border: 1px solid #0652dd;
+  }
+  .banner-content{
+    padding: 40px 25px;
+  }
+  .banner-content>h3{
+    font-size: 20px;
+  }
+  .banner-content>h2{
+    font-size: 30px;
+  }
+  .banner-content>p{
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+  .banner-search,
+  input.banner-search-input{
+    font-size: 18px;
+    line-height: 21px;
+  }
+  /* .banner-search-input::placeholder{
+    font-size: 18px;
+    line-height: 21px;
+  } */
+  ul.banner-footer-icon-list{
+    margin-top: 20px;
+  }
+  .banner-footer-icon-list span{
+    font-size: 14px;
+    line-height: 19px;
+  }
+  .banner-search>.btn-primary{
+    font-size: 14px;
+    padding: 7px;
+    line-height: 18px;
+  }
+
   section.login-form-section {
     align-items: flex-start;
     padding: 5rem 8rem;
   }
-
+  .section-heading{
+    margin: 25px 0;
+  }
   .courses-section .banner-data p,
   .banner-badge-module {
     width: 100%;
@@ -2328,5 +2391,20 @@ svg.edit-icon {
   .hightlight-list li span {
     padding-left: 15px;
     padding-right: 15px;
+  }
+  .flex-wrap-mb{
+    flex-wrap: wrap;
+  }
+  .nav-pills{
+    width: 100%;
+  }
+  div#v-pills-tabContent{
+    width: 100%;
+  }
+  .course-list{
+    width: 100%;
+  }
+  .course-list>.course-module{
+    width: 100%;
   }
 }

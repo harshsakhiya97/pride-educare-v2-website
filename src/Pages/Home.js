@@ -298,7 +298,7 @@ const Home = () => {
         <div className="container">
           <div className="row">
             <div className="col-12">
-              <div className="d-flex align-items-start">
+              <div className="d-flex align-items-start flex-wrap-mb">
                 <div
                   className="nav flex-column nav-pills me-3"
                   id="v-pills-tab"
@@ -308,9 +308,8 @@ const Home = () => {
                   {courses.map((category, index) => (
                     <button
                       key={index}
-                      className={`nav-link ${
-                        activeTab === index ? "active" : ""
-                      }`}
+                      className={`nav-link ${activeTab === index ? "active" : ""
+                        }`}
                       onClick={() => setActiveTab(index)}
                       data-bs-toggle="pill"
                       data-bs-target={`#v-pills-${index}`}
@@ -327,9 +326,8 @@ const Home = () => {
                   {courses.map((category, index) => (
                     <div
                       key={index}
-                      className={`tab-pane fade ${
-                        activeTab === index ? "show active" : ""
-                      }`}
+                      className={`tab-pane fade ${activeTab === index ? "show active" : ""
+                        }`}
                       id={`v-pills-${index}`}
                       role="tabpanel"
                       aria-labelledby={`v-pills-${index}-tab`}
