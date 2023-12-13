@@ -109,7 +109,7 @@ const Courses = () => {
         <div className="container">
           {courses.map((course) => (
             <div
-              className="row"
+              className="row row-responsive"
               key={course.category.predefinedId}
               id={course.category.name}
             >
