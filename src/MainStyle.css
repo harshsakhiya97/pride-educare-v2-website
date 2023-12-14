@@ -2397,9 +2397,6 @@ svg.edit-icon {
     align-items: flex-start;
     padding: 5rem 8rem;
   }
-  .section-heading{
-    margin: 25px 0;
-  }
   .courses-section .banner-data p,
   .banner-badge-module {
     width: 100%;
@@ -2409,7 +2406,17 @@ svg.edit-icon {
     border-radius: 40px 50px 7px 40px;
     background: #fff;
     box-shadow: 0px 10px 30px 0px rgba(0, 0, 0, 0.16);
-    width: 45%;
+    width: 100%;
+  }
+  .accordion-button > div, .accordion-button > .accordion-number {
+    height: 60px;
+    width: 60px;
+    left: -10px;
+    top: -20px;
+  }
+  .accordion{
+    width: 90%;
+    margin: auto;
   }
 
   .hightlight-list li span {
@@ -2496,5 +2503,11 @@ svg.edit-icon {
 }
 .courses-section .banner-content {
   height: 600px;
+}
+.courses-section .banner-data h3{
+  font-size: 25px;
+}
+.course-curri-accordian{
+  width: 100%;
 }
 }
