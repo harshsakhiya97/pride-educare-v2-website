@@ -3,17 +3,19 @@ import jwtDecode from "jwt-decode";
 
 export const AuthContext = createContext();
 
+const tokenKey = "userToken";
+
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(localStorage.getItem("token") || "");
+  const [token, setToken] = useState(localStorage.getItem(tokenKey) || "");
 
   const updateToken = (newToken) => {
     setToken(newToken);
-    localStorage.setItem("token", newToken);
+    localStorage.setItem(tokenKey, newToken);
   };
 
   const logout = () => {
     setToken("");
-    localStorage.removeItem("token");
+    localStorage.removeItem(tokenKey);
   };
 
   const decodedToken = token && jwtDecode(token);
