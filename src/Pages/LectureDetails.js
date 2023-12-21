@@ -6,6 +6,8 @@ import axios from "../helper/axios";
 import { saveAs } from "file-saver";
 import Vimeo from "@vimeo/player";
 import video from "../assets/Video.svg";
+import AttendanceBatchListModal from "./AttendanceBatchListModal";
+import { Button } from "bootstrap";
 
 const LectureDetails = () => {
   const { id, lecID } = useParams();
@@ -23,6 +25,8 @@ const LectureDetails = () => {
   const [selectedOption, setSelectedOption] = useState(null);
   const [resultData, setResultData] = useState([]);
   const [isOptionSelected, setIsOptionSelected] = useState(false);
+  const [attendanceBatchListData, setAttendanceBatchList] = useState({});
+  const [isModalData, setModalData] = useState(false);
 
   const handleOptionChange = (optionId) => {
     setSelectedOption(optionId);
@@ -45,6 +49,7 @@ const LectureDetails = () => {
   useEffect(() => {
     fetchLectureData(0);
     fetchEnrollVideoLectures();
+    fetchAttendanceBatchList();
   }, [token]);
 
   const fetchLectureData = async (mcqIndex) => {
@@ -62,7 +67,21 @@ const LectureDetails = () => {
     }
   };
 
+  const fetchAttendanceBatchList = async (selectedID = lectureId) => {
+    try {
+      const response = await axios.get(`attendance/batchList/${selectedID}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setAttendanceBatchList(response.data.data);
+    } catch (error) {
+      console.error("Error Fetching Lecture Data", error);
+    }
+  }
+
   const fetchEnrollLectureData = async (selectedID) => {
+    fetchAttendanceBatchList(selectedID);
     try {
       const response = await axios.get(`studentLecture/${selectedID}`, {
         headers: {
@@ -274,14 +293,31 @@ const LectureDetails = () => {
       console.error("Error Fetching Lecture Data", error);
     }
   };
-
+  console.log('isModalData', isModalData);
   return (
     <>
       <DashboardNavbar />
-
+      {
+        isModalData &&
+        <AttendanceBatchListModal
+          show={isModalData}
+          hide={() => setModalData(false)}
+          data={attendanceBatchListData.list}
+          studentLectureMasterId={lectureId}
+          fetchAttendanceBatchList={() => fetchAttendanceBatchList()}
+        />
+      }
       <div className="container">
         <div className="row pt-5 mb-5">
           <div className="col-4 pe-5">
+            {
+              attendanceBatchListData && attendanceBatchListData.totalCount > 0 &&
+              <Link
+                onClick={() => setModalData(true)}
+                className="btn btn-primary btn-lg px-5 mb-4"
+              >
+                Attend Offline
+              </Link>}
             <div className="lecture-progress-block card-shadow mb-5">
               <div>
                 <h3 className="section-heading">
@@ -323,11 +359,10 @@ const LectureDetails = () => {
                     <div
                       id={lecture.studentLectureMasterId}
                       key={lecture.studentLectureMasterId}
-                      className={`video-progress-item ${
-                        lectureId == lecture.studentLectureMasterId
-                          ? "active"
-                          : ""
-                      }`}
+                      className={`video-progress-item ${lectureId == lecture.studentLectureMasterId
+                        ? "active"
+                        : ""
+                        }`}
                       onClick={() =>
                         fetchEnrollLectureData(lecture.studentLectureMasterId)
                       }
@@ -351,7 +386,7 @@ const LectureDetails = () => {
                         {lecture.lectureMaster?.lectureName}
                       </h4>
 
-                      <span>{lecture.lectureMaster?.duration} Min</span>
+                      <span>{lecture.lectureMaster?.duration}</span>
                     </div>
                   </>
                 ))}
@@ -506,7 +541,7 @@ const LectureDetails = () => {
                             strokeWidth="0.1"
                           />
                         </svg>
-                        {lectureData?.lectureMaster?.duration} Min
+                        {lectureData?.lectureMaster?.duration}
                       </li>
                     </ul>
 
@@ -527,7 +562,7 @@ const LectureDetails = () => {
                 >
                   <div className="msq-list">
                     {currentQuestionIndex <=
-                    lectureData?.mcqList?.length - 1 ? (
+                      lectureData?.mcqList?.length - 1 ? (
                       <>
                         {!hasAnswerOptionMaster ? (
                           <>
@@ -549,12 +584,11 @@ const LectureDetails = () => {
                                     <label className="radio-label w-100">
                                       <li
                                         key={option.mcqOptionMasterId}
-                                        className={`${
-                                          selectedOption ===
+                                        className={`${selectedOption ===
                                           option.mcqOptionMasterId
-                                            ? "selected"
-                                            : ""
-                                        }`}
+                                          ? "selected"
+                                          : ""
+                                          }`}
                                       >
                                         <input
                                           type="radio"
@@ -601,20 +635,20 @@ const LectureDetails = () => {
                                   )}
                                   {currentQuestionIndex <
                                     lectureData?.mcqList?.length && (
-                                    <Link
-                                      onClick={() =>
-                                        handleOptionSubmit(
-                                          selectedOption,
-                                          lectureData?.mcqList[
-                                            currentQuestionIndex
-                                          ]?.studentLectureMCQMasterId
-                                        )
-                                      }
-                                      className="active-btn"
-                                    >
-                                      SAVE / NEXT
-                                    </Link>
-                                  )}
+                                      <Link
+                                        onClick={() =>
+                                          handleOptionSubmit(
+                                            selectedOption,
+                                            lectureData?.mcqList[
+                                              currentQuestionIndex
+                                            ]?.studentLectureMCQMasterId
+                                          )
+                                        }
+                                        className="active-btn"
+                                      >
+                                        SAVE / NEXT
+                                      </Link>
+                                    )}
                                 </div>
                               </div>
                             </div>
@@ -639,23 +673,22 @@ const LectureDetails = () => {
                                     <label className="radio-label w-100">
                                       <li
                                         key={option.mcqOptionMasterId}
-                                        className={`${
-                                          option.isActualAnswer
-                                            ? "correct-ans"
-                                            : lectureData?.mcqList[
-                                                currentQuestionIndex
-                                              ]?.answerOptionMaster &&
-                                              !lectureData?.mcqList[
-                                                currentQuestionIndex
-                                              ]?.answerOptionMaster
-                                                .isActualAnswer &&
-                                              lectureData?.mcqList[
-                                                currentQuestionIndex
-                                              ]?.answerOptionMaster
-                                                .mcqOptionMasterId ==
-                                                option.mcqOptionMasterId &&
-                                              "wrong-ans"
-                                        }`}
+                                        className={`${option.isActualAnswer
+                                          ? "correct-ans"
+                                          : lectureData?.mcqList[
+                                            currentQuestionIndex
+                                          ]?.answerOptionMaster &&
+                                          !lectureData?.mcqList[
+                                            currentQuestionIndex
+                                          ]?.answerOptionMaster
+                                            .isActualAnswer &&
+                                          lectureData?.mcqList[
+                                            currentQuestionIndex
+                                          ]?.answerOptionMaster
+                                            .mcqOptionMasterId ==
+                                          option.mcqOptionMasterId &&
+                                          "wrong-ans"
+                                          }`}
                                       >
                                         <span className="ms-2">
                                           {optionIndex + 1}.{" "}
@@ -684,18 +717,18 @@ const LectureDetails = () => {
                                   )}
                                   {currentQuestionIndex <=
                                     lectureData?.mcqList?.length && (
-                                    <Link
-                                      onClick={() =>
-                                        setCurrentMCQ(
-                                          lectureData,
-                                          currentQuestionIndex + 1
-                                        )
-                                      }
-                                      className="active-btn"
-                                    >
-                                      NEXT
-                                    </Link>
-                                  )}
+                                      <Link
+                                        onClick={() =>
+                                          setCurrentMCQ(
+                                            lectureData,
+                                            currentQuestionIndex + 1
+                                          )
+                                        }
+                                        className="active-btn"
+                                      >
+                                        NEXT
+                                      </Link>
+                                    )}
                                 </div>
                               </div>
                             </div>
@@ -710,13 +743,12 @@ const LectureDetails = () => {
 
                         <div className="msq-result-list-item">
                           <div
-                            className={`msq-result-block course-analytics-block ${
-                              resultData?.marks >= 7
-                                ? "green-bg"
-                                : resultData?.marks > 3
+                            className={`msq-result-block course-analytics-block ${resultData?.marks >= 7
+                              ? "green-bg"
+                              : resultData?.marks > 3
                                 ? "yellow-bg"
                                 : "red-bg"
-                            }`}
+                              }`}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -773,11 +805,10 @@ const LectureDetails = () => {
                                   key={result.studentLectureMCQMasterId}
                                 >
                                   <h2
-                                    className={`accordion-header ${
-                                      result.answerOptionMaster?.isActualAnswer
-                                        ? "correct"
-                                        : "wrong"
-                                    }`}
+                                    className={`accordion-header ${result.answerOptionMaster?.isActualAnswer
+                                      ? "correct"
+                                      : "wrong"
+                                      }`}
                                     id={`flush-heading${index}`}
                                   >
                                     <span
@@ -807,11 +838,11 @@ const LectureDetails = () => {
                                                 option.isActualAnswer
                                                   ? "correct-ans"
                                                   : !result.answerOptionMaster
-                                                      ?.isActualAnswer &&
-                                                    result.answerOptionMaster
-                                                      ?.mcqOptionMasterId ===
-                                                      option.mcqOptionMasterId &&
-                                                    "wrong-ans"
+                                                    ?.isActualAnswer &&
+                                                  result.answerOptionMaster
+                                                    ?.mcqOptionMasterId ===
+                                                  option.mcqOptionMasterId &&
+                                                  "wrong-ans"
                                               }
                                             >
                                               {index + 1}. {option.option.title}

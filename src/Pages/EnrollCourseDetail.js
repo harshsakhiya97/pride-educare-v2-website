@@ -85,9 +85,9 @@ const EnrollCourseDetail = () => {
                 <h3 className="section-heading mb-3">
                   {detailData?.courseMaster?.courseName}
                 </h3>
-                <p className="section-content">
+                {/* <p className="section-content">
                   {detailData?.courseMaster?.courseDescription}
-                </p>
+                </p> */}
                 <hr className="title-bottom-divider mb-5" />
               </div>
 
@@ -100,7 +100,7 @@ const EnrollCourseDetail = () => {
                           pathname: `/lecture-detail/${id}/${lecture.studentLectureMasterId}`,
                         }}
                       >
-                        <div className="lecture-detail-thumb">
+                        <div className={`lecture-detail-thumb ${lecture.offlineAttendanceDate && "border-green"}`}>
                           {lecture?.lectureMaster?.lectureThumbnail
                             ?.filePath ? (
                             <img
@@ -155,7 +155,7 @@ const EnrollCourseDetail = () => {
                                         fill="#909090"
                                       />
                                     </svg>
-                                    {lecture?.lectureMaster?.duration} Min
+                                    {lecture?.lectureMaster?.duration}
                                   </li>
 
                                   <li>
