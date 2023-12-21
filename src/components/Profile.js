@@ -455,7 +455,7 @@ const Profile = () => {
               <>
                 <li key={receipt.receiptMasterId}>
                   <Link
-                    download="https://media.geeksforgeeks.org/wp-content/cdn-uploads/20210101201653/PDF.pdf"
+                    download={receipt.receiptFile?.filePath}
                     target="_blank"
                     rel="noreferrer"
                   >
@@ -476,8 +476,7 @@ const Profile = () => {
 
                     <div className="course-details">
                       <h4 className="course-title">
-                        Sr.{index + 1} {">"} Receipt ID :{" "}
-                        {receipt.receiptMasterId} - {receipt.receiptType?.name}
+                        {receipt.receiptNo}
                       </h4>
                       <ul className="course-detail-list">
                         <li>
