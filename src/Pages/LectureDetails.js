@@ -7,7 +7,6 @@ import { saveAs } from "file-saver";
 import Vimeo from "@vimeo/player";
 import video from "../assets/Video.svg";
 import AttendanceBatchListModal from "./AttendanceBatchListModal";
-import { Button } from "bootstrap";
 
 const LectureDetails = () => {
   const { id, lecID } = useParams();
