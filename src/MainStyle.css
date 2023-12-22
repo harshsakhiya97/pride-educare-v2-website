@@ -1644,6 +1644,31 @@ svg.light-svg-icon {
   width: 450px;
 }
 
+.video-list-carousel{
+}
+
+.video-item{
+  display: inline-block;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  width: 300px;
+  border: 1px solid #333;
+  border-radius: 5px;
+  box-shadow: 0px 4px 40px 4px rgb(0 0 0 / 7%);
+}
+
+.video-item>img{
+  width: 100%;
+  max-height: 100px;
+  object-fit: cover;
+}
+.video-item>h4{
+  font-size: 14px;
+    text-align: left;
+    padding: 10px;
+    line-height: 21px;
+}
+
 .msp-ans-list li {
   color: #979797;
   font-family: Poppins;

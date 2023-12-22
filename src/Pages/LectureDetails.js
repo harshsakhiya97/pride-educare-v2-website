@@ -26,6 +26,7 @@ const LectureDetails = () => {
   const [isOptionSelected, setIsOptionSelected] = useState(false);
   const [attendanceBatchListData, setAttendanceBatchList] = useState({});
   const [isModalData, setModalData] = useState(false);
+  const [playVideo, setVideo] = useState({});
 
   const handleOptionChange = (optionId) => {
     setSelectedOption(optionId);
@@ -60,6 +61,7 @@ const LectureDetails = () => {
       });
 
       setLectureData(response.data.data);
+      setVideo(response.data.data?.videoList.length > 0 ? response.data.data?.videoList[0] : {})
       setCurrentMCQ(response.data.data, mcqIndex);
     } catch (error) {
       console.error("Error Fetching Lecture Data", error);
@@ -180,7 +182,7 @@ const LectureDetails = () => {
   useEffect(() => {
     if (showVideo) {
       const player = new Vimeo(vimeoPlayerRef.current, {
-        id: lectureData?.videoList[0]?.linkId,
+        id: playVideo?.linkId,
         autoplay: false,
         height: 520,
         width: 1080,
@@ -191,7 +193,7 @@ const LectureDetails = () => {
       const updateLastWatchedTime = async (time, duration) => {
         try {
           await axios.post(
-            `studentLectureContent/updateWatchedTime/${lectureData?.videoList[0]?.studentLectureContentMasterId}`,
+            `studentLectureContent/updateWatchedTime/${playVideo?.studentLectureContentMasterId}`,
             { lastWatchedTime: time, totalDuration: duration },
             {
               headers: { Authorization: `Bearer ${token}` },
@@ -214,8 +216,8 @@ const LectureDetails = () => {
       });
 
       const fetchLastWatchedTime = async () => {
-        if (lectureData?.videoList[0]?.lastWatchedTime) {
-          player.setCurrentTime(lectureData?.videoList[0]?.lastWatchedTime);
+        if (playVideo?.lastWatchedTime) {
+          player.setCurrentTime(playVideo?.lastWatchedTime);
         }
       };
 
@@ -466,7 +468,7 @@ const LectureDetails = () => {
                       <>
                         <h1 className="section-heading">
                           {lectureData?.lectureMaster?.sequenceNo}.{" "}
-                          {lectureData?.videoList[0]?.title}
+                          {lectureData?.lectureMaster?.lectureName}
                         </h1>
 
                         <section className="pb-0 mb-0">
@@ -477,6 +479,9 @@ const LectureDetails = () => {
                                   {showVideo ? (
                                     <>
                                       <div ref={vimeoPlayerRef}></div>
+                                      <h3 className="pt-4">
+                                        {playVideo?.title}
+                                      </h3>
                                     </>
                                   ) : (
                                     <img
@@ -491,6 +496,34 @@ const LectureDetails = () => {
                             </div>
                           </div>
                         </section>
+                        <div className="video-list-carousel mt-3">
+                          {
+                            lectureData?.videoList?.map((item) => {
+                              return (
+                                <div className="video-item link" onClick={() => setVideo(item)}>
+                                  <img src={item.videoThumbnail} alt={item.title} />
+                                  <h4 className=""> <span>
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="22"
+                                      height="21"
+                                      viewBox="0 0 22 21"
+                                      fill="none"
+                                    >
+                                      <path
+                                        d="M17.077 20.3246H5.29346C4.17733 20.3236 3.1072 19.8798 2.31798 19.0906C1.52877 18.3014 1.08496 17.2313 1.08398 16.1151V4.33154C1.08496 3.21542 1.52877 2.14529 2.31798 1.35607C3.1072 0.566852 4.17733 0.123043 5.29346 0.12207L17.077 0.12207C18.1932 0.123043 19.2633 0.566852 20.0525 1.35607C20.8417 2.14529 21.2855 3.21542 21.2865 4.33154V16.1151C21.2855 17.2313 20.8417 18.3014 20.0525 19.0906C19.2633 19.8798 18.1932 20.3236 17.077 20.3246ZM5.29346 1.80623C4.6237 1.80623 3.98138 2.07229 3.50779 2.54587C3.0342 3.01946 2.76814 3.66179 2.76814 4.33154V16.1151C2.76814 16.7849 3.0342 17.4272 3.50779 17.9008C3.98138 18.3744 4.6237 18.6404 5.29346 18.6404H17.077C17.7468 18.6404 18.3891 18.3744 18.8627 17.9008C19.3363 17.4272 19.6024 16.7849 19.6024 16.1151V4.33154C19.6024 3.66179 19.3363 3.01946 18.8627 2.54587C18.3891 2.07229 17.7468 1.80623 17.077 1.80623H5.29346ZM8.94828 14.4365C8.59711 14.4355 8.25244 14.3417 7.94917 14.1647C7.64832 13.9944 7.39821 13.7472 7.22456 13.4483C7.0509 13.1494 6.95996 12.8097 6.96108 12.464V7.98269C6.96148 7.63877 7.05204 7.30096 7.22374 7.00297C7.39544 6.70497 7.64227 6.4572 7.93961 6.28437C8.23695 6.11155 8.57441 6.0197 8.91832 6.01799C9.26224 6.01629 9.60059 6.10479 9.89963 6.27466L14.3589 8.49326C14.6674 8.66005 14.9256 8.90627 15.107 9.20643C15.2883 9.50659 15.3861 9.84978 15.3902 10.2004C15.3944 10.5511 15.3047 10.8965 15.1304 11.2008C14.9562 11.5052 14.7038 11.7574 14.3993 11.9314L9.87392 14.1941C9.59195 14.3546 9.27274 14.4382 8.94828 14.4365ZM8.92624 7.70169C8.87986 7.70153 8.83426 7.71356 8.794 7.73659C8.75032 7.76091 8.71407 7.79667 8.68916 7.84003C8.66425 7.88338 8.6516 7.9327 8.65259 7.98269V12.464C8.65275 12.5132 8.66575 12.5615 8.6903 12.6042C8.71485 12.6468 8.7501 12.6823 8.79258 12.7072C8.83505 12.732 8.88328 12.7454 8.93248 12.7459C8.98169 12.7464 9.03019 12.7341 9.07317 12.7101L13.5985 10.4474C13.6326 10.4212 13.6597 10.3871 13.6777 10.3481C13.6956 10.309 13.7037 10.2662 13.7014 10.2233C13.7026 10.1733 13.69 10.1239 13.6651 10.0805C13.6401 10.0371 13.6038 10.0014 13.56 9.97723L9.11908 7.75863C9.06358 7.72459 9.00044 7.70502 8.93542 7.70169H8.92624Z"
+                                        fill="#929292"
+                                        stroke="#929292"
+                                        strokeWidth="0.2"
+                                      />
+                                    </svg>
+                                  </span> {item.title}</h4>
+
+                                </div>
+                              )
+                            })
+                          }
+                        </div>
                       </>
                     ) : (
                       <>
@@ -545,7 +578,7 @@ const LectureDetails = () => {
                     </ul>
 
                     <div>
-                      <h4 className="course-title">About Course</h4>
+                      <h4 className="course-title">About Lecture</h4>
                       <div className="section-content">
                         {lectureData?.lectureMaster?.lectureDescription}
                       </div>
