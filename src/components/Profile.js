@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import userSvg from "../assets/user.svg";
 import { AuthContext } from "../context/AuthContext";
 import { Link } from "react-router-dom";
 import axios from "../helper/axios";
+import { Modal } from "react-bootstrap";
 
 const Profile = () => {
+  const [userData, setUserData] = useState([]);
   const { logout, decodedToken, token } = React.useContext(AuthContext);
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenSupport, setIsOpenSupport] = useState(false);
@@ -12,8 +14,135 @@ const Profile = () => {
   const [successBox, setSuccessBox] = useState(false);
   const [receiptData, setReceiptData] = useState([]);
 
+  const [isError, setError] = useState("");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showFailureModal, setShowFailureModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [balance, setBalance] = useState(0);
+
+
+  let orderId;
+  let paymentWindow;
+
+  const handlePayBalance = async (e) => {
+    e.preventDefault();
+    if (balance > userData?.balance) {
+      setError("Amount is More Than Required");
+      console.log("Amount is More Than Required");
+      // alert("Amount is More Than Required");
+      return;
+    }
+    if (balance == 0 || balance === null || balance === undefined) {
+      setError("0 Not Allowed");
+      console.log("0 Not Allowed");
+      // alert("0 Not Allowed");
+      return;
+    }
+    // console.log("Pay", parseInt(balance));
+
+    if (!token) {
+      navigate("/login");
+    } else {
+      setError("");
+      try {
+        const response = await axios.post(
+          "receipt/payBalance",
+          {
+            amount: balance,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const { paymentUrl } = response.data.data;
+        orderId = response.data.data.orderId;
+        // console.log("responseData", response.data.data);
+
+        paymentWindow = window.open(
+          paymentUrl,
+          "Payment Window",
+          "width=1000,height=1000"
+        );
+
+        const checkPaymentStatus = async () => {
+          try {
+            const checkStatusResponse = await axios.post(
+              "payment/paymentStatus",
+              {
+                orderId: orderId,
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+            const { orderStatus } = checkStatusResponse.data.data;
+            // console.log("orderstatus", checkStatusResponse.data.data);
+
+            // console.log("orderStatus & id", orderStatus, orderId);
+
+            if (orderStatus === "SUCCESS") {
+              console.log("Payment Success");
+              setShowSuccessModal(true);
+              setShowPaymentModal(false);
+              if (showFailureModal) {
+                setShowFailureModal(false);
+              }
+            } else if (orderStatus === "FAILED") {
+              console.log("Payment failed");
+              setShowFailureModal(true);
+              setShowPaymentModal(false);
+            } else if (orderStatus === "ACTIVE") {
+              console.log("Payment Active");
+              setShowPaymentModal(false);
+            }
+            fetchUserData();
+          } catch (error) {
+            console.error("Error checking payment status", error);
+          }
+        };
+
+        const checkWindowStatus = setInterval(() => {
+          if (paymentWindow.closed) {
+            clearInterval(checkWindowStatus);
+            checkPaymentStatus();
+          }
+        }, 1000);
+      } catch (error) {
+        console.error("Error In Payment", error);
+        setShowFailureModal(true);
+        setShowPaymentModal(false);
+      }
+    }
+  };
+
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchUserData();
+    }
+
+  }, [isOpen]);
+
+  const fetchUserData = async () => {
+    try {
+      const res = await axios.get("student/details", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setUserData(res.data.data);
+    } catch (err) {
+      console.error("Error Fetching User Data", err);
+    }
   };
 
   const handleReceiptClick = () => {
@@ -80,7 +209,7 @@ const Profile = () => {
 
     return `${day} ${month}, ${year}`;
   };
-
+  console.log('userData', userData);
   return (
     <>
       <span className="col-1 text-end fw-bold">
@@ -349,9 +478,8 @@ const Profile = () => {
         </div>
 
         <div
-          className={`receipt-block dropdown-list support-block ${
-            isOpenSupport ? "show" : ""
-          }`}
+          className={`receipt-block dropdown-list support-block ${isOpenSupport ? "show" : ""
+            }`}
         >
           <h3>
             <svg
@@ -450,7 +578,30 @@ const Profile = () => {
             </svg>
             Receipt
           </h3>
+          <div className="row" style={{ marginLeft: "0" }}>
+            <div className="col-4">
+              <div className="pt-1">
+                <p className="mb-1"> <b> Total Paid</b></p>
+                <p className="mb-1">{userData?.totalPaid}</p>
+              </div>
+            </div>
+            <div className="col-4">
+              <div className="pt-1">
+                <p className="mb-1"> <b> Balance</b></p>
+                <p className="mb-1">{userData?.balance}</p>
+              </div>
+            </div>
+            <div className="col-4">
+              <div className="pt-1">
+                <p className="mb-1"> <b> Total Payable</b></p>
+                <p className="mb-1">{userData?.totalPayable}</p>
+              </div>
+            </div>
+          </div>
           <ul>
+            {
+              userData && userData.balance > 0 &&
+              <button className="btn btn-primary mb-3" onClick={() => setShowPaymentModal(true)}>Pay Now</button>}
             {receiptData?.list?.map((receipt, index) => (
               <>
                 <li key={receipt.receiptMasterId}>
@@ -602,9 +753,8 @@ const Profile = () => {
         </div>
 
         <div
-          className={`receipt-block dropdown-list contact-block ${
-            isOpenContact ? "show" : ""
-          }`}
+          className={`receipt-block dropdown-list contact-block ${isOpenContact ? "show" : ""
+            }`}
         >
           <h3>
             Contact Us
@@ -689,6 +839,266 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+
+
+
+      <Modal
+        show={showPaymentModal}
+        onHide={() => setShowPaymentModal(false)}
+        className="payment-modal"
+        centered
+      >
+        <Modal.Header className="p-4" closeButton>
+          <Modal.Title>Pay Balance</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="user-select-none p-4">
+          <form onSubmit={(e) => handlePayBalance(e)}>
+            <div className="d-flex mb-3 me-3 col">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="35"
+                height="49"
+                viewBox="0 0 35 49"
+                fill="none"
+              >
+                <path
+                  d="M3.18182 0H35L31.8182 5.44444H21.4455C22.9727 7.02333 24.1182 8.87444 24.7864 10.8889H35L31.8182 16.3333H25.4545C25.0602 19.7273 23.3372 22.9077 20.5649 25.3586C17.7926 27.8095 14.1337 29.3871 10.1818 29.8356V29.9444H7.95455L27.0455 49H19.0909L0 29.9444V24.5H7.95455C13.5545 24.5 18.2 20.9611 18.9636 16.3333H0L3.18182 10.8889H18.0091C16.2273 7.67667 12.4091 5.44444 7.95455 5.44444H0L3.18182 0Z"
+                  fill="#6A97CF"
+                />
+              </svg>
+
+              <div className="user-form-data">
+                <span>Balance</span>
+                <h4>{userData?.balance}</h4>
+              </div>
+            </div>
+            <input
+              // value={balance}
+              onChange={(e) => setBalance(e.target.value)}
+              type="number"
+              min="0"
+              // max={userData?.balance}
+              name="balance"
+              id="balance"
+              className="form-control"
+              placeholder="Enter Amount To Proceed"
+              required
+            />
+            {isError !== "" && <span className='error'>{isError}</span>}
+            <div className="d-flex align-items-center justify-content-end">
+              {/* <button
+                className="btn btn-outline-secondary mt-4 me-2"
+                onClick={() => setShowPaymentModal(false)}
+              >
+                Close
+              </button> */}
+              <button className="btn btn-outline-primary mt-4" type="submit">
+                Pay Now
+              </button>
+            </div>
+          </form>
+        </Modal.Body>
+      </Modal>
+
+      <Modal
+        show={showSuccessModal}
+        onHide={() => setShowSuccessModal(false)}
+        backdrop="static"
+        keyboard={false}
+        className="payment-modal"
+        centered
+      >
+        <Modal.Body className="p-0 user-select-none">
+          <div className="success-block w-100">
+            <div className="exam-success1-tick-block">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="93"
+                height="93"
+                viewBox="0 0 93 93"
+                fill="none"
+              >
+                <g clipPath="url(#clip0_727_17414)">
+                  <path
+                    d="M46.5 93C72.1812 93 93 72.1812 93 46.5C93 20.8188 72.1812 0 46.5 0C20.8188 0 0 20.8188 0 46.5C0 72.1812 20.8188 93 46.5 93Z"
+                    fill="#6487C9"
+                  />
+                  <path
+                    d="M34.6172 67.4763L58.5273 91.3864C78.3301 86.1056 92.9989 68.063 92.9989 46.4999C92.9989 46.0599 92.9989 45.6198 92.9989 45.1798L74.2229 27.8706L34.6172 67.4763Z"
+                    fill="#466EB6"
+                  />
+                  <path
+                    d="M47.6724 56.9149C49.726 58.9685 49.726 62.489 47.6724 64.5427L43.4184 68.7966C41.3648 70.8502 37.8443 70.8502 35.7907 68.7966L17.1613 50.0206C15.1077 47.9669 15.1077 44.4464 17.1613 42.3928L21.4153 38.1389C23.4689 36.0852 26.9894 36.0852 29.043 38.1389L47.6724 56.9149Z"
+                    fill="white"
+                  />
+                  <path
+                    d="M63.956 24.4969C66.0097 22.4433 69.5302 22.4433 71.5838 24.4969L75.8377 28.7508C77.8914 30.8045 77.8914 34.325 75.8377 36.3786L43.5665 68.5032C41.5128 70.5568 37.9923 70.5568 35.9387 68.5032L31.6848 64.2492C29.6311 62.1956 29.6311 58.6751 31.6848 56.6215L63.956 24.4969Z"
+                    fill="white"
+                  />
+                </g>
+                <defs>
+                  <clipPath id="clip0_727_17414">
+                    <rect width="93" height="93" fill="white" />
+                  </clipPath>
+                </defs>
+              </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="53"
+                height="25"
+                viewBox="0 5 53 25"
+                fill="none"
+                className="blue-triangle"
+              >
+                <path
+                  d="M24.6814 23.6119C25.7559 24.4317 27.2459 24.4317 28.3205 23.6119L51.0863 6.24485C53.3686 4.50375 52.1373 0.859646 49.2667 0.859646H3.73516C0.864535 0.859646 -0.36674 4.50374 1.9156 6.24484L24.6814 23.6119Z"
+                  fill="#DDEEFD"
+                />
+              </svg>
+            </div>
+            <div className="exam-success-text-block">
+              <div className="exam-course-title">
+                Your Payment of has been Successfully Completed...!
+              </div>
+
+              {/* <div className="exam-text mt-3 text-center">
+                Congratulations You have scored{" "}
+                {result ? (
+                  <>
+                    <Link className="d-block">"{result?.examMarks}" Marks</Link>
+                  </>
+                ) : (
+                  <>
+                    <Link className="d-block">Loading ...</Link>
+                  </>
+                )}
+                & your certificate is now available
+              </div> */}
+
+              <div className="btn-list text-center mt-5">
+                <a
+                  className="btn support-btn"
+                  onClick={() => setShowSuccessModal(false)}
+                >
+                  Close
+                </a>
+              </div>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+
+      <Modal
+        show={showFailureModal}
+        className="payment-modal"
+        onHide={() => setShowFailureModal(false)}
+        centered
+      >
+        <Modal.Body className="p-0 user-select-none">
+          <div className="success-block w-100">
+            <div className="exam-success-tick-block red-bg">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="147"
+                height="146"
+                viewBox="0 0 147 146"
+                fill="none"
+              >
+                <path
+                  d="M125.467 145.699H21.4348C5.52115 145.699 -4.82914 129.083 2.28758 114.961L54.3033 11.7412C62.1924 -3.91374 84.7086 -3.91374 92.5977 11.7412L144.613 114.96C151.731 129.083 141.38 145.699 125.467 145.699Z"
+                  fill="url(#paint0_linear_727_20114)"
+                />
+                <path
+                  d="M125.467 145.699H21.4348C5.52115 145.699 -4.82914 129.083 2.28758 114.961L54.3033 11.7412C62.1924 -3.91374 84.7086 -3.91374 92.5977 11.7412L144.613 114.96C151.731 129.083 141.38 145.699 125.467 145.699Z"
+                  fill="#EC654D"
+                />
+                <path
+                  d="M126.04 145.7H112.84L68.2913 122.781C66.8914 122.1 65.8163 118.688 64.9913 116.232C64.9913 109.893 63.8656 83.9226 63.3414 69.5757C62.8172 55.2317 61.6914 52.1771 61.6914 45.8382C63.3414 39.2899 68.2913 40.927 68.2913 40.1085C69.9412 40.1084 71.8791 39.3091 74.0855 39.3091C76.2919 39.3091 81.6714 39.2899 83.9659 42.564C84.1647 42.7812 121.039 84.2648 135.94 99.043L144.189 114.595C152.439 129.329 140.89 145.7 126.04 145.7Z"
+                  fill="#EB4335"
+                />
+                <path
+                  d="M113.898 145.698H92.4734L67.9121 121.329C66.2789 119.9 65.4609 118.234 65.4609 116.327C65.4609 114.341 66.2789 112.652 67.9121 111.263C69.5452 109.874 71.5298 109.18 73.8631 109.18C75.9168 109.18 77.694 109.874 79.1917 111.263L113.898 145.698Z"
+                  fill="#EB4335"
+                />
+                <path
+                  d="M61.8477 45.7517C61.8477 43.6891 63.0015 42.0959 65.3107 40.9736C67.6189 39.8513 70.6084 39.2896 74.2792 39.2896C77.9499 39.2896 80.6467 39.8739 82.3663 41.0415C84.0854 42.2091 84.9471 43.7788 84.9471 45.7517C84.9471 52.2165 84.7628 55.2194 84.4024 69.8493C84.0382 84.4797 83.8582 89.0898 83.8582 95.5519C83.8582 96.9004 82.8198 97.9559 80.746 98.7177C78.6688 99.4797 76.5134 99.8612 74.2796 99.8612C67.7359 99.8612 64.4633 98.4259 64.4633 95.5519C64.4633 89.0898 64.027 84.4797 63.1557 69.8493C62.283 55.2191 61.8477 52.2162 61.8477 45.7517Z"
+                  fill="white"
+                />
+                <circle cx="73.3943" cy="120.151" r="8.24981" fill="white" />
+                <defs>
+                  <linearGradient
+                    id="paint0_linear_727_20114"
+                    x1="36.8434"
+                    y1="62.3159"
+                    x2="203.104"
+                    y2="229.885"
+                    gradientUnits="userSpaceOnUse"
+                  >
+                    <stop stopColor="#FFB92D" />
+                    <stop offset="1" stopColor="#F59500" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="80"
+                height="38"
+                className="blue-triangle"
+                viewBox="0 0 80 38"
+                fill="none"
+              >
+                <path
+                  d="M38.0229 37.1732C39.1548 38.166 40.8473 38.166 41.9792 37.1732L78.1604 5.43969C80.2417 3.61427 78.9506 0.184277 76.1822 0.184277H3.8199C1.05154 0.184277 -0.239513 3.61427 1.84175 5.43969L38.0229 37.1732Z"
+                  fill="#FFCDC5"
+                />
+              </svg>
+            </div>
+            <div className="exam-success-text-block">
+              <div className="exam-course-title">
+                Your Payment has been Unsuccessful...!
+              </div>
+
+              {/* <div className="exam-text mt-3 text-center">
+                If you click the button below your exam will end and you will
+                get certificate based on answers you have appeared till now...!
+              </div> */}
+
+              <div className="btn-list text-center mt-5">
+                <Link
+                  className="end-btn"
+                  onClick={() => setShowFailureModal(false)}
+                >
+                  Close
+                </Link>
+                <Link
+                  className="end-btn ms-2"
+                  onClick={(e) => handlePayBalance(e)}
+                >
+                  Retry Payment
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="15"
+                    height="14"
+                    viewBox="0 0 15 14"
+                    fill="none"
+                    className="ms-2"
+                  >
+                    <path
+                      d="M8.70071 13.6584C8.60108 13.5501 8.52205 13.4214 8.46813 13.2798C8.4142 13.1382 8.38645 12.9864 8.38645 12.833C8.38645 12.6797 8.4142 12.5279 8.46813 12.3863C8.52205 12.2447 8.60108 12.116 8.70071 12.0077L12.2281 8.16599L1.07152 8.15782C0.787333 8.15782 0.514787 8.03491 0.313839 7.81613C0.11289 7.59734 0 7.30061 0 6.9912C0 6.6818 0.11289 6.38506 0.313839 6.16628C0.514787 5.94749 0.787333 5.82458 1.07152 5.82458L12.2303 5.83275L8.70071 1.99224C8.49965 1.77349 8.38664 1.47674 8.38654 1.16727C8.38644 0.857799 8.49926 0.560961 8.70017 0.342056C8.90109 0.12315 9.17365 0.000109468 9.45789 7.30087e-08C9.74213 -0.000109322 10.0148 0.122722 10.2158 0.341473L14.0583 4.52497C14.3568 4.84997 14.5937 5.23582 14.7553 5.66048C14.9168 6.08514 15 6.54029 15 6.99995C15 7.45961 14.9168 7.91476 14.7553 8.33943C14.5937 8.76409 14.3568 9.14993 14.0583 9.47493L10.2158 13.6584C10.0149 13.8771 9.7424 14 9.45827 14C9.17414 14 8.90165 13.8771 8.70071 13.6584Z"
+                      fill="white"
+                    />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+
+
+
+
     </>
   );
 };
