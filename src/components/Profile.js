@@ -102,6 +102,7 @@ const Profile = () => {
               setShowPaymentModal(false);
             }
             fetchUserData();
+            fetchReceiptData();
           } catch (error) {
             console.error("Error checking payment status", error);
           }
