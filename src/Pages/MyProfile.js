@@ -141,6 +141,7 @@ const MyProfile = () => {
     }
   };
 
+  const [isError, setError] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showFailureModal, setShowFailureModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -152,13 +153,15 @@ const MyProfile = () => {
   const handlePayBalance = async (e) => {
     e.preventDefault();
     if (balance > userData?.balance) {
+      setError("Amount is More Than Required");
       console.log("Amount is More Than Required");
-      alert("Amount is More Than Required");
+      // alert("Amount is More Than Required");
       return;
     }
     if (balance == 0 || balance === null || balance === undefined) {
+      setError("0 Not Allowed");
       console.log("0 Not Allowed");
-      alert("0 Not Allowed");
+      // alert("0 Not Allowed");
       return;
     }
     // console.log("Pay", parseInt(balance));
@@ -166,6 +169,7 @@ const MyProfile = () => {
     if (!token) {
       navigate("/login");
     } else {
+      setError("");
       try {
         const response = await axios.post(
           "receipt/payBalance",
@@ -979,9 +983,9 @@ const MyProfile = () => {
                   </div>
                 </div>
                 {userData?.balance <= 0 ||
-                userData?.balance === null ||
-                userData?.balance === undefined ||
-                !userData?.balance ? (
+                  userData?.balance === null ||
+                  userData?.balance === undefined ||
+                  !userData?.balance ? (
                   <>
                     <div className="user-form-field card-shadow my-3 me-3 col">
                       <svg
@@ -1006,9 +1010,9 @@ const MyProfile = () => {
                 ) : (
                   <>
                     <div
-                      onClick={() => setShowPaymentModal(true)}
-                      className="user-form-field card-shadow my-3 me-3 col link"
-                      title="Click Here To Pay Balance Amount"
+                      // onClick={() => setShowPaymentModal(true)}
+                      className="user-form-field card-shadow my-3 me-3 col"
+                    // title="Click Here To Pay Balance Amount"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -1098,6 +1102,7 @@ const MyProfile = () => {
               placeholder="Enter Amount To Proceed"
               required
             />
+            {isError !== "" && <span className='error'>{isError}</span>}
             <div className="d-flex align-items-center justify-content-end">
               {/* <button
                 className="btn btn-outline-secondary mt-4 me-2"

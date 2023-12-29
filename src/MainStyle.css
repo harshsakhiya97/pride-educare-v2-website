@@ -131,8 +131,8 @@ a:hover {
 
 .login-form {
   width: 500px;
-  height: 800px;
-  padding: 2rem 45px;
+  /* height: 800px; */
+  padding: 8rem 45px;
   border-radius: 20px;
   background-color: rgba(255, 255, 255, 0.47);
   box-shadow: 0px 0px 139px 32px rgba(0, 0, 0, 0.06);
@@ -1644,6 +1644,31 @@ svg.light-svg-icon {
   width: 450px;
 }
 
+.video-list-carousel{
+}
+
+.video-item{
+  display: inline-block;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  width: 300px;
+  border: 1px solid #333;
+  border-radius: 5px;
+  box-shadow: 0px 4px 40px 4px rgb(0 0 0 / 7%);
+}
+
+.video-item>img{
+  width: 100%;
+  max-height: 100px;
+  object-fit: cover;
+}
+.video-item>h4{
+  font-size: 14px;
+    text-align: left;
+    padding: 10px;
+    line-height: 21px;
+}
+
 .msp-ans-list li {
   color: #979797;
   font-family: Poppins;
@@ -1788,6 +1813,10 @@ h3.question-heading-img {
 
 .green-bg {
   background: #33c481;
+}
+
+.border-green{
+  border: 1px solid#33c481;
 }
 
 .green-bg .light-svg-icon rect {
@@ -2306,6 +2335,30 @@ svg.edit-icon {
     margin: auto;
   }
 }
+@media screen and (min-width: 576px){
+  .col-sm-2 {
+    flex: 0 0 auto;
+    width: 14.66666667%;
+  }
+  .col-sm-5 {
+    flex: 0 0 auto;
+    width: 35.66666667%;
+  }
+  .row {
+    --bs-gutter-x: 1.5rem;
+    --bs-gutter-y: 0;
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: calc(-1 * var(--bs-gutter-y));
+    margin-right: 0px;
+    margin-left: 20px;
+  }
+  .col-sm-1 {
+    flex: 0.2 0 auto;
+    width: 8.33333333%;
+}
+}
+
 
 @media screen and (max-width: 900px) {
   .navbar-brand{
@@ -2373,9 +2426,6 @@ svg.edit-icon {
     align-items: flex-start;
     padding: 5rem 8rem;
   }
-  .section-heading{
-    margin: 25px 0;
-  }
   .courses-section .banner-data p,
   .banner-badge-module {
     width: 100%;
@@ -2385,7 +2435,17 @@ svg.edit-icon {
     border-radius: 40px 50px 7px 40px;
     background: #fff;
     box-shadow: 0px 10px 30px 0px rgba(0, 0, 0, 0.16);
-    width: 45%;
+    width: 100%;
+  }
+  .accordion-button > div, .accordion-button > .accordion-number {
+    height: 60px;
+    width: 60px;
+    left: -10px;
+    top: -20px;
+  }
+  .accordion{
+    width: 90%;
+    margin: auto;
   }
 
   .hightlight-list li span {
@@ -2407,4 +2467,76 @@ svg.edit-icon {
   .course-list>.course-module{
     width: 100%;
   }
+  .section-heading img {
+    width: 100px;
+    /* margin-top: 1rem; */
+  }
+  .section-heading{
+    font-size: 20px;
+  }
+  .pb-15 {
+    padding-bottom: 2rem;
+  }
+  .career-goal-section h3{
+    text-align: center;
+    font-size: 20px;
+  }
+  .h3, h3{
+    text-align: center;
+  }
+  .video-container{
+    height: 350px;
+  }
+  img.course-category-img {
+    height: 60%;
+    object-fit: cover;
+}
+.course-category-section .course-category-title h4 {
+  font-size: 10px;
+}
+.row-responsiv{
+  display: flex;
+  flex-direction: column;
+}
+.col-3 {
+  flex: 0 0 auto;
+  width: 100%;
+}
+.testimonial-quote-up {
+  top: -30px;
+  left: 0px;
+  width: 150px;
+}
+.testimonial-quote-down {
+  bottom: -30px;
+  right: 10px;
+  width: 150px;
+}
+.slide-item > div {
+  display: flex;
+  flex-direction: column;
+}
+.slide-item-content {
+  padding-left: 0rem;
+}
+.col-6 {
+  flex: 0 0 auto;
+  width: 100%;
+}
+.hightlight-list {
+  margin: 1rem 0;
+}
+.py-5 {
+  padding-top: 1rem!important;
+  padding-bottom: 1rem!important;
+}
+.courses-section .banner-content {
+  height: 600px;
+}
+.courses-section .banner-data h3{
+  font-size: 25px;
+}
+.course-curri-accordian{
+  width: 100%;
+}
 }
