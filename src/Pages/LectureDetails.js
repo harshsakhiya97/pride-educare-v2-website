@@ -61,7 +61,7 @@ const LectureDetails = () => {
       });
 
       setLectureData(response.data.data);
-      setVideo(response.data.data?.videoList.length > 0 ? response.data.data?.videoList[0] : {})
+      setVideo(response.data.data?.videoList?.length > 0 ? response.data.data?.videoList[0] : {})
       setCurrentMCQ(response.data.data, mcqIndex);
     } catch (error) {
       console.error("Error Fetching Lecture Data", error);
