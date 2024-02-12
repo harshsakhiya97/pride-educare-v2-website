@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import axios from "../helper/axios";
 import { AuthContext } from "../context/AuthContext";
 import placeHolderSvg from "../assets/prideplaceholder.svg";
+import Loading from "../components/Loading";
 
 const EnrollCourseListing = () => {
   const progressBarStyle = {
@@ -17,6 +18,7 @@ const EnrollCourseListing = () => {
 
   const [enrollData, setEnrollData] = useState([]);
   const [viewedData, setViewedData] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const { token } = useContext(AuthContext);
 
@@ -25,6 +27,7 @@ const EnrollCourseListing = () => {
   }, [token]);
 
   const getEnrollCourses = async () => {
+    setLoading(true);
     try {
       const res = await axios.post(
         "enroll/list",
@@ -35,33 +38,38 @@ const EnrollCourseListing = () => {
           },
         }
       );
+      setLoading(false);
       setEnrollData(res.data.data);
     } catch (error) {
+      setLoading(false);
       console.error("Error Fetching Data", error);
     }
   };
 
-  useEffect(() => {
-    if (enrollData.length === 0) {
-      fetchViewData();
-    }
-  }, [enrollData.length === 0]);
+  // useEffect(() => {
+  //   if (enrollData.length === 0) {
+  //     fetchViewData();
+  //   }
+  // }, [enrollData.length === 0]);
 
-  //   console.log("searchedCourse", searchedCourse);
-  const fetchViewData = async () => {
-    try {
-      const res = await axios.post(
-        "course/list",
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setViewedData(res.data.data);
-    } catch (error) {
-      console.error("Error Fetching Courses", error);
-    }
-  };
+  // //   console.log("searchedCourse", searchedCourse);
+  // const fetchViewData = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const res = await axios.post(
+  //       "course/list",
+  //       {},
+  //       {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //       }
+  //     );
+  //     setLoading(false);
+  //     setViewedData(res.data.data);
+  //   } catch (error) {
+  //     setLoading(false);
+  //     console.error("Error Fetching Courses", error);
+  //   }
+  // };
 
   // console.log("enrollData", enrollData);
   {
@@ -77,6 +85,7 @@ const EnrollCourseListing = () => {
 
   return (
     <>
+      {loading ? ( <Loading /> ) : (<></>)}
       <DashboardNavbar />
 
       <section>

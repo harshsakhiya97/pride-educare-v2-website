@@ -105,6 +105,8 @@ const Login = () => {
 
     if (!number) {
       alert("Please enter a number");
+    } else if(number.length != 10) {
+      alert("Please enter a valid number");
     } else {
       try {
         const response = await axios.post("auth/send-login-otp", {

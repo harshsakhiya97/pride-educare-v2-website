@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import Modal from "react-bootstrap/Modal";
 import axios from "../helper/axios";
 import { AuthContext } from "../context/AuthContext";
+import Loading from "../components/Loading";
 
 const Exam = () => {
   const [showFailureModal, setShowFailureModal] = useState(false);
@@ -14,7 +15,7 @@ const Exam = () => {
     borderRadius: "5px",
   };
 
-  const [questionData, setQuestionData] = useState([]);
+  const [examResponse, setExamData] = useState([]);
   const [result, setResult] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
@@ -22,6 +23,7 @@ const Exam = () => {
   const { token } = useContext(AuthContext);
   const { id } = useParams();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const enterFullscreen = () => {
     const element = document.documentElement;
@@ -76,49 +78,27 @@ const Exam = () => {
     };
   }, []);
 
-  // useEffect(() => {
-  //   window.addEventListener("contextmenu", (e) => {
-  //     e.preventDefault();
-  //   });
-  //   window.addEventListener("keydown", (e) => {
-  //     if (
-  //       e.key === "F12" ||
-  //       (e.ctrlKey && e.shiftKey && e.key === "I") ||
-  //       e.key === "F11" ||
-  //       e.key === "Escape" ||
-  //       e.key === "F5" ||
-  //       (e.ctrlKey && e.shiftKey && e.key === "R") ||
-  //       (e.ctrlKey && e.key === "F5")
-  //     ) {
-  //       e.preventDefault();
-  //     }
-  //   });
-
-  //   return () => {
-  //     window.removeEventListener("contextmenu", blockActions);
-  //     window.removeEventListener("keydown", blockActions);
-  //   };
-  // }, []);
-
   const handleOptionChange = (optionId) => {
     setSelectedOption(optionId);
   };
 
-  const setCurrentMCQ = (questionData, mcqIndex) => {
+  const setCurrentMCQ = (examResponse, mcqIndex) => {
     setIsOptionSelected(false);
     setSelectedOption(0);
     setCurrentQuestionIndex(mcqIndex);
+    console.log(examResponse);
     if (
-      questionData?.mcqList[mcqIndex]?.answerOptionMaster &&
-      questionData?.mcqList[mcqIndex]?.answerOptionMaster?.mcqOptionMasterId
+      examResponse?.mcqList[mcqIndex]?.answerOptionMaster &&
+      examResponse?.mcqList[mcqIndex]?.answerOptionMaster?.mcqOptionMasterId
     ) {
       setSelectedOption(
-        questionData?.mcqList[mcqIndex]?.answerOptionMaster?.mcqOptionMasterId
+        examResponse?.mcqList[mcqIndex]?.answerOptionMaster?.mcqOptionMasterId
       );
     }
   };
 
   const endExam = async () => {
+    setLoading(true);
     try {
       await axios
         .post(
@@ -131,15 +111,18 @@ const Exam = () => {
           }
         )
         .then((response) => {
+          setLoading(false);
           console.log("Exam Ended Successfully", response.data.data);
           navigate(-1);
         });
     } catch (error) {
+      setLoading(false);
       console.error("Error Ending Exam", error);
     }
   };
 
   const examSubmit = async () => {
+    setLoading(true);
     try {
       await axios
         .post(
@@ -152,30 +135,18 @@ const Exam = () => {
           }
         )
         .then((response) => {
+          setLoading(false);
           console.log("Exam Completed Successfully", response.data.data);
           setResult(response.data.data);
           setShowSuccessModal(true);
         });
     } catch (error) {
+      setLoading(false);
       console.error("Error Submitting Exam", error);
     }
   };
 
-  // const [countDown, setCountDown] = useState(1800);
-
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setCountDown(countDown - 1);
-  //     if (countDown === 300) {
-  //       setShowWarningModal(true);
-  //     }
-  //     if (countDown === 0) {
-  //       examSubmit();
-  //     }
-  //   }, 1000);
-  //   return () => clearInterval(interval);
-  // }, [countDown]);
-  const [countDown, setCountDown] = useState(1800);
+  const [countDown, setCountDown] = useState(30*60);
   const [timerRunning, setTimerRunning] = useState(true);
 
   useEffect(() => {
@@ -203,34 +174,39 @@ const Exam = () => {
   const seconds = countDown - minutes * 60;
 
   useEffect(() => {
-    fetchQuestionData(0);
+    getExamMCQList(0);
   }, []);
 
-  const fetchQuestionData = async (mcqIndex) => {
+  const getExamMCQList = async (mcqIndex) => {
+    setLoading(true);
     try {
       const response = await axios.get(`exam/getExamMcq/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      setQuestionData(response.data.data);
+      setLoading(false);
+      setExamData(response.data.data);
       setCurrentMCQ(response.data.data, mcqIndex);
     } catch (error) {
+      setLoading(false);
       console.error("Error Fetching Question Data", error);
     }
   };
 
-  // console.log("questionData", questionData);
+  // console.log("examResponse", examResponse);
 
-  const handleOptionSubmit = (e, mcqOptionMasterId, examMCQMasterId) => {
+  const handleOptionSubmit = (e, mcqOptionMasterId, examMCQMaster) => {
     e.preventDefault();
+
     if (mcqOptionMasterId == 0) {
       setIsOptionSelected(true);
       return;
     }
+    setLoading(true);
     axios
       .post(
-        `exam/saveExamMcqAnswer/${examMCQMasterId}`,
+        `exam/saveExamMcqAnswer/${examMCQMaster.examMCQMasterId}`,
         {
           mcqOptionMasterId: mcqOptionMasterId,
         },
@@ -239,19 +215,23 @@ const Exam = () => {
         }
       )
       .then((response) => {
-        console.log("MCQ answer submitted successfully:", response.data.data);
+        setLoading(false);
 
-        fetchQuestionData(currentQuestionIndex + 1);
+        examMCQMaster.answerOptionMaster = examMCQMaster.options.find(x=>x.mcqOptionMasterId == mcqOptionMasterId);
+
+        setCurrentMCQ(examResponse, currentQuestionIndex + 1);
+        // getExamMCQList(currentQuestionIndex + 1);
         // if (currentQuestionIndex == lectureData?.mcqList?.length - 1) {
         //   fetchResultData();
         // }
         setIsOptionSelected(false);
-        if (currentQuestionIndex === questionData?.mcqList?.length - 1) {
+        if (currentQuestionIndex === examResponse?.mcqList?.length - 1) {
           examSubmit();
         }
         // setCurrentQuestionIndex(currentQuestionIndex + 1);
       })
       .catch((error) => {
+        setLoading(false);
         console.error("Error submitting MCQ answer:", error);
       });
   };
@@ -263,15 +243,17 @@ const Exam = () => {
 
   return (
     <>
+      {loading ? ( <Loading /> ) : (<></>)}
+
       <div className="container w-50 my-4 user-select-none">
         <div className="row my-5"></div>
 
-        {questionData && (
+        {examResponse && (
           <>
             <div className="lecture-progress-block card-shadow mb-5">
               <div className="px-0">
                 <h3 className="exam-section-heading">
-                  {currentQuestionIndex + 1}/{questionData?.mcqList?.length}
+                  {currentQuestionIndex + 1}/{examResponse?.mcqList?.length}
                   <a className="exam-duration">
                     <svg
                       className="me-2"
@@ -302,7 +284,7 @@ const Exam = () => {
                       style={{
                         width: `${
                           ((currentQuestionIndex + 1) /
-                            questionData?.mcqList?.length) *
+                            examResponse?.mcqList?.length) *
                           100
                         }%`,
                         borderRadius: "5px",
@@ -311,11 +293,11 @@ const Exam = () => {
                       role="progressbar"
                       aria-valuenow={currentQuestionIndex + 1}
                       aria-valuemin="0"
-                      aria-valuemax={questionData?.mcqList?.length}
+                      aria-valuemax={examResponse?.mcqList?.length}
                     ></div>
                   </div>
                   <span>
-                    {currentQuestionIndex + 1} / {questionData?.mcqList?.length}
+                    {currentQuestionIndex + 1} / {examResponse?.mcqList?.length}
                   </span>
                 </div>
                 <div className="mt-4 px-4">
@@ -323,18 +305,18 @@ const Exam = () => {
                     Question {currentQuestionIndex + 1}
                   </p>
                   {currentQuestionIndex <=
-                    questionData?.mcqList?.length - 1 && (
+                    examResponse?.mcqList?.length - 1 && (
                     <>
                       <h2 className="question-head my-4">
                         {
-                          questionData?.mcqList[currentQuestionIndex]?.question
+                          examResponse?.mcqList[currentQuestionIndex]?.question
                             ?.title
                         }
                       </h2>
 
                       <div className="msp-ans-module">
                         <ul className="msp-ans-list p-0 m-0">
-                          {questionData?.mcqList[
+                          {examResponse?.mcqList[
                             currentQuestionIndex
                           ]?.options?.map((option, optionIndex) => (
                             <label className="radio-label w-100">
@@ -379,7 +361,7 @@ const Exam = () => {
                               <Link
                                 onClick={() =>
                                   setCurrentMCQ(
-                                    questionData,
+                                    examResponse,
                                     currentQuestionIndex - 1
                                   )
                                 }
@@ -389,14 +371,13 @@ const Exam = () => {
                             </>
                           )}
                           {currentQuestionIndex <
-                            questionData?.mcqList?.length && (
+                            examResponse?.mcqList?.length && (
                             <Link
                               onClick={(e) =>
                                 handleOptionSubmit(
                                   e,
                                   selectedOption,
-                                  questionData?.mcqList[currentQuestionIndex]
-                                    ?.examMCQMasterId
+                                  examResponse?.mcqList[currentQuestionIndex]
                                 )
                               }
                               className="active-btn"

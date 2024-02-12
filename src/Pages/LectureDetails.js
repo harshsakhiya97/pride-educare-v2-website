@@ -7,6 +7,7 @@ import { saveAs } from "file-saver";
 import Vimeo from "@vimeo/player";
 import video from "../assets/Video.svg";
 import AttendanceBatchListModal from "./AttendanceBatchListModal";
+import Loading from "../components/Loading";
 
 const LectureDetails = () => {
   const { id, lecID } = useParams();
@@ -27,6 +28,47 @@ const LectureDetails = () => {
   const [attendanceBatchListData, setAttendanceBatchList] = useState({});
   const [isModalData, setModalData] = useState(false);
   const [playVideo, setVideo] = useState({});
+  const [loading, setLoading] = useState(false);
+
+
+  useEffect(() => {
+    fetchEnrollCourseDetails();
+    fetchLectureDetails(0);
+
+    fetchAttendanceBatchList();
+  }, [token]);
+
+  const fetchEnrollCourseDetails = async () => {
+    try {
+      const res = await axios.get(`enroll/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setEnrollDetails(res.data.data);
+    } catch (error) {
+      console.error("Error Fetching Data", error);
+    }
+  };
+
+  const fetchLectureDetails = async (mcqIndex) => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`studentLecture/${lectureId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setLoading(false);
+      setLectureData(response.data.data);
+      setVideo(response.data.data?.videoList?.length > 0 ? response.data.data?.videoList[0] : {})
+      setCurrentMCQ(response.data.data, mcqIndex);
+    } catch (error) {
+      setLoading(false);
+      console.error("Error Fetching Lecture Data", error);
+    }
+  };
 
   const handleOptionChange = (optionId) => {
     setSelectedOption(optionId);
@@ -36,35 +78,13 @@ const LectureDetails = () => {
     setIsOptionSelected(false);
     setSelectedOption(0);
     setCurrentQuestionIndex(mcqIndex);
-    if (
+    if (lectureData?.mcqList && lectureData?.mcqList.length > mcqIndex &&
       lectureData?.mcqList[mcqIndex]?.answerOptionMaster &&
       lectureData?.mcqList[mcqIndex]?.answerOptionMaster?.mcqOptionMasterId
     ) {
       setSelectedOption(
         lectureData?.mcqList[mcqIndex]?.answerOptionMaster?.mcqOptionMasterId
       );
-    }
-  };
-
-  useEffect(() => {
-    fetchLectureData(0);
-    fetchEnrollVideoLectures();
-    fetchAttendanceBatchList();
-  }, [token]);
-
-  const fetchLectureData = async (mcqIndex) => {
-    try {
-      const response = await axios.get(`studentLecture/${lectureId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      setLectureData(response.data.data);
-      setVideo(response.data.data?.videoList?.length > 0 ? response.data.data?.videoList[0] : {})
-      setCurrentMCQ(response.data.data, mcqIndex);
-    } catch (error) {
-      console.error("Error Fetching Lecture Data", error);
     }
   };
 
@@ -83,6 +103,7 @@ const LectureDetails = () => {
 
   const fetchEnrollLectureData = async (selectedID) => {
     fetchAttendanceBatchList(selectedID);
+    setLoading(true);
     try {
       const response = await axios.get(`studentLecture/${selectedID}`, {
         headers: {
@@ -94,6 +115,8 @@ const LectureDetails = () => {
       setLectureData(response.data.data);
       setCurrentMCQ(response.data.data, 0);
       setLectureId(selectedID);
+      setLoading(false);
+      setVideo(response.data.data?.videoList?.length > 0 ? response.data.data?.videoList[0] : {})
       navigate(`/lecture-detail/${id}/${selectedID}`);
       fetchResultData(selectedID);
     } catch (error) {
@@ -109,19 +132,6 @@ const LectureDetails = () => {
       }
     }
   }, [lectureId]);
-
-  const fetchEnrollVideoLectures = async () => {
-    try {
-      const res = await axios.get(`enroll/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setEnrollDetails(res.data.data);
-    } catch (error) {
-      console.error("Error Fetching Data", error);
-    }
-  };
 
   const progressBarStyle = {
     width: "100%",
@@ -150,6 +160,7 @@ const LectureDetails = () => {
   const handleUploadFile = async (e, id) => {
     if (fileSelected) {
       e.preventDefault();
+      setLoading(true);
       try {
         const formData = new FormData();
         formData.append("assignmentFile", selectedFile);
@@ -165,10 +176,12 @@ const LectureDetails = () => {
           }
         );
 
-        fetchLectureData(currentQuestionIndex);
+        setLoading(false);
+        fetchLectureDetails(currentQuestionIndex);
 
         // console.log("Upload Response", response.data.data.uploadedAssignment);
       } catch (error) {
+        setLoading(false);
         console.error("Error Uploading File", error);
       }
     }
@@ -190,6 +203,16 @@ const LectureDetails = () => {
         responsive: true,
       });
 
+      // player.on("play", () => {
+      // console.log("Video is playing");
+      // });
+
+      player.on("pause", (data) => {
+        const currentTime = data.seconds;
+        const duration = data.duration;
+        updateLastWatchedTime(currentTime, duration);
+      });
+
       const updateLastWatchedTime = async (time, duration) => {
         try {
           await axios.post(
@@ -204,16 +227,6 @@ const LectureDetails = () => {
           console.error("Error updating last watched time:", error);
         }
       };
-
-      // player.on("play", () => {
-      // console.log("Video is playing");
-      // });
-
-      player.on("pause", (data) => {
-        const currentTime = data.seconds;
-        const duration = data.duration;
-        updateLastWatchedTime(currentTime, duration);
-      });
 
       const fetchLastWatchedTime = async () => {
         if (playVideo?.lastWatchedTime) {
@@ -235,6 +248,7 @@ const LectureDetails = () => {
       return;
     }
     setSelectedOption(mcqOptionMasterId);
+    setLoading(true);
     axios
       .post(
         `studentLectureMcq/saveMcqAnswer/${studentLectureMCQMasterId}`,
@@ -248,13 +262,15 @@ const LectureDetails = () => {
       .then((response) => {
         // console.log("MCQ answer submitted successfully:", response.data.data);
 
-        fetchLectureData(currentQuestionIndex + 1);
+        setLoading(false);
+        fetchLectureDetails(currentQuestionIndex + 1);
         // if (currentQuestionIndex == lectureData?.mcqList?.length - 1) {
         //   fetchResultData();
         // }
         setIsOptionSelected(false);
       })
       .catch((error) => {
+        setLoading(false);
         console.error("Error submitting MCQ answer:", error);
       });
   };
@@ -294,10 +310,11 @@ const LectureDetails = () => {
       console.error("Error Fetching Lecture Data", error);
     }
   };
-  console.log('isModalData', isModalData);
+  // console.log('isModalData', isModalData);
   return (
     <>
       <DashboardNavbar />
+      {loading ? (<Loading />) : (<></>)}
       {
         isModalData &&
         <AttendanceBatchListModal
@@ -592,306 +609,321 @@ const LectureDetails = () => {
                   role="tabpanel"
                   aria-labelledby="profile-tab"
                 >
-                  <div className="msq-list">
-                    {currentQuestionIndex <=
-                      lectureData?.mcqList?.length - 1 ? (
+                  {
+                    lectureData?.mcqList && lectureData?.mcqList.length > 0 ? (
                       <>
-                        {!hasAnswerOptionMaster ? (
-                          <>
-                            <div className="msp-list-item">
-                              <h3 className="section-heading question-heading-img">
-                                {currentQuestionIndex + 1}/
-                                {lectureData?.mcqList?.length}.{" "}
-                                {
-                                  lectureData?.mcqList[currentQuestionIndex]
-                                    ?.question?.title
-                                }
+                        <div className="msq-list">
+                          {currentQuestionIndex <=
+                            lectureData?.mcqList?.length - 1 ? (
+                            <>
+                              {!hasAnswerOptionMaster ? (
+                                <>
+                                  <div className="msp-list-item">
+                                    <h3 className="section-heading question-heading-img">
+                                      {currentQuestionIndex + 1}/
+                                      {lectureData?.mcqList?.length}.{" "}
+                                      {
+                                        lectureData?.mcqList[currentQuestionIndex]
+                                          ?.question?.title
+                                      }
+                                    </h3>
+
+                                    <div className="msp-ans-module">
+                                      <ul className="msp-ans-list p-0 m-0">
+                                        {lectureData?.mcqList[
+                                          currentQuestionIndex
+                                        ]?.options?.map((option, optionIndex) => (
+                                          <label className="radio-label w-100">
+                                            <li
+                                              key={option.mcqOptionMasterId}
+                                              className={`${selectedOption ===
+                                                option.mcqOptionMasterId
+                                                ? "selected"
+                                                : ""
+                                                }`}
+                                            >
+                                              <input
+                                                type="radio"
+                                                name="options"
+                                                style={{ display: "none" }}
+                                                value={option.mcqOptionMasterId}
+                                                checked={
+                                                  selectedOption ===
+                                                  option.mcqOptionMasterId
+                                                }
+                                                onChange={() =>
+                                                  handleOptionChange(
+                                                    option.mcqOptionMasterId
+                                                  )
+                                                }
+                                              />
+                                              <span className="ms-2">
+                                                {optionIndex + 1}.{" "}
+                                                {option.option.title}
+                                              </span>
+                                            </li>
+                                          </label>
+                                        ))}
+                                      </ul>
+                                      <div className="btn-list">
+                                        {isOptionSelected && (
+                                          <span className="error resend">
+                                            Please Select Atleast One Option
+                                          </span>
+                                        )}
+                                        {currentQuestionIndex > 0 && (
+                                          <>
+                                            <Link
+                                              onClick={() =>
+                                                setCurrentMCQ(
+                                                  lectureData,
+                                                  currentQuestionIndex - 1
+                                                )
+                                              }
+                                            >
+                                              Previous
+                                            </Link>
+                                          </>
+                                        )}
+                                        {currentQuestionIndex <
+                                          lectureData?.mcqList?.length && (
+                                            <Link
+                                              onClick={() =>
+                                                handleOptionSubmit(
+                                                  selectedOption,
+                                                  lectureData?.mcqList[
+                                                    currentQuestionIndex
+                                                  ]?.studentLectureMCQMasterId
+                                                )
+                                              }
+                                              className="active-btn"
+                                            >
+                                              SAVE / NEXT
+                                            </Link>
+                                          )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="msp-list-item">
+                                    <h3 className="section-heading question-heading-img">
+                                      {currentQuestionIndex + 1}/
+                                      {lectureData?.mcqList?.length}.{" "}
+                                      {
+                                        lectureData?.mcqList[currentQuestionIndex]
+                                          ?.question?.title
+                                      }
+                                    </h3>
+
+                                    <div className="msp-ans-module">
+                                      <ul className="msp-ans-list p-0 m-0">
+                                        {lectureData?.mcqList[
+                                          currentQuestionIndex
+                                        ]?.options?.map((option, optionIndex) => (
+                                          <label className="radio-label w-100">
+                                            <li
+                                              key={option.mcqOptionMasterId}
+                                              className={`${option.isActualAnswer
+                                                ? "correct-ans"
+                                                : lectureData?.mcqList[
+                                                  currentQuestionIndex
+                                                ]?.answerOptionMaster &&
+                                                !lectureData?.mcqList[
+                                                  currentQuestionIndex
+                                                ]?.answerOptionMaster
+                                                  .isActualAnswer &&
+                                                lectureData?.mcqList[
+                                                  currentQuestionIndex
+                                                ]?.answerOptionMaster
+                                                  .mcqOptionMasterId ==
+                                                option.mcqOptionMasterId &&
+                                                "wrong-ans"
+                                                }`}
+                                            >
+                                              <span className="ms-2">
+                                                {optionIndex + 1}.{" "}
+                                                {option.option.title}
+                                              </span>
+                                            </li>
+                                          </label>
+                                        ))}
+                                      </ul>
+
+                                      <div className="btn-list">
+                                        Quiz Already Given
+                                        {currentQuestionIndex > 0 && (
+                                          <>
+                                            <Link
+                                              onClick={() =>
+                                                setCurrentMCQ(
+                                                  lectureData,
+                                                  currentQuestionIndex - 1
+                                                )
+                                              }
+                                            >
+                                              Previous
+                                            </Link>
+                                          </>
+                                        )}
+                                        {currentQuestionIndex <=
+                                          lectureData?.mcqList?.length && (
+                                            <Link
+                                              onClick={() =>
+                                                setCurrentMCQ(
+                                                  lectureData,
+                                                  currentQuestionIndex + 1
+                                                )
+                                              }
+                                              className="active-btn"
+                                            >
+                                              NEXT
+                                            </Link>
+                                          )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <h3 className="section-heading">
+                                All Questions Have Been Completed.
                               </h3>
 
-                              <div className="msp-ans-module">
-                                <ul className="msp-ans-list p-0 m-0">
-                                  {lectureData?.mcqList[
-                                    currentQuestionIndex
-                                  ]?.options?.map((option, optionIndex) => (
-                                    <label className="radio-label w-100">
-                                      <li
-                                        key={option.mcqOptionMasterId}
-                                        className={`${selectedOption ===
-                                          option.mcqOptionMasterId
-                                          ? "selected"
-                                          : ""
-                                          }`}
-                                      >
-                                        <input
-                                          type="radio"
-                                          name="options"
-                                          style={{ display: "none" }}
-                                          value={option.mcqOptionMasterId}
-                                          checked={
-                                            selectedOption ===
-                                            option.mcqOptionMasterId
-                                          }
-                                          onChange={() =>
-                                            handleOptionChange(
-                                              option.mcqOptionMasterId
-                                            )
-                                          }
+                              <div className="msq-result-list-item">
+                                <div
+                                  className={`msq-result-block course-analytics-block ${resultData?.marks >= 7
+                                    ? "green-bg"
+                                    : resultData?.marks > 3
+                                      ? "yellow-bg"
+                                      : "red-bg"
+                                    }`}
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="14"
+                                    height="19"
+                                    viewBox="0 0 14 19"
+                                    fill="none"
+                                  >
+                                    <path
+                                      d="M12.8605 2.4716L11.5725 1.15901C11.2122 0.790346 10.7836 0.498084 10.3115 0.299142C9.83941 0.100201 9.33326 -0.00146933 8.82233 1.60435e-05H3.88889C2.85787 0.0012731 1.86943 0.418714 1.14039 1.16077C0.411352 1.90283 0.001235 2.90892 0 3.95835V15.0417C0.001235 16.0911 0.411352 17.0972 1.14039 17.8392C1.86943 18.5813 2.85787 18.9987 3.88889 19H10.1111C11.1421 18.9987 12.1306 18.5813 12.8596 17.8392C13.5886 17.0972 13.9988 16.0911 14 15.0417V5.27014C14.0012 4.75016 13.9012 4.23509 13.7056 3.75472C13.51 3.27436 13.2228 2.83824 12.8605 2.4716ZM11.7608 3.59101C11.8711 3.70289 11.9699 3.82598 12.0555 3.95835H10.1111V1.97918C10.2409 2.06731 10.3621 2.16806 10.4728 2.28001L11.7608 3.59101ZM12.4444 15.0417C12.4444 15.6716 12.1986 16.2756 11.761 16.721C11.3234 17.1664 10.7299 17.4167 10.1111 17.4167H3.88889C3.27005 17.4167 2.67656 17.1664 2.23897 16.721C1.80139 16.2756 1.55555 15.6716 1.55555 15.0417V3.95835C1.55555 3.32846 1.80139 2.72437 2.23897 2.27897C2.67656 1.83357 3.27005 1.58335 3.88889 1.58335H8.55555V3.95835C8.55555 4.37827 8.71944 4.781 9.01116 5.07793C9.30288 5.37486 9.69854 5.54168 10.1111 5.54168H12.4444V15.0417ZM10.1111 7.12501C10.3174 7.12501 10.5152 7.20842 10.6611 7.35688C10.8069 7.50535 10.8889 7.70671 10.8889 7.91668C10.8889 8.12664 10.8069 8.328 10.6611 8.47647C10.5152 8.62493 10.3174 8.70834 10.1111 8.70834H3.88889C3.68261 8.70834 3.48478 8.62493 3.33891 8.47647C3.19305 8.328 3.11111 8.12664 3.11111 7.91668C3.11111 7.70671 3.19305 7.50535 3.33891 7.35688C3.48478 7.20842 3.68261 7.12501 3.88889 7.12501H10.1111ZM10.8889 11.0833C10.8889 11.2933 10.8069 11.4947 10.6611 11.6431C10.5152 11.7916 10.3174 11.875 10.1111 11.875H3.88889C3.68261 11.875 3.48478 11.7916 3.33891 11.6431C3.19305 11.4947 3.11111 11.2933 3.11111 11.0833C3.11111 10.8734 3.19305 10.672 3.33891 10.5235C3.48478 10.3751 3.68261 10.2917 3.88889 10.2917H10.1111C10.3174 10.2917 10.5152 10.3751 10.6611 10.5235C10.8069 10.672 10.8889 10.8734 10.8889 11.0833ZM10.7395 13.7853C10.8604 13.9546 10.9106 14.1657 10.8789 14.3725C10.8473 14.5794 10.7365 14.765 10.5708 14.8889C9.78273 15.4604 8.84939 15.7884 7.88277 15.8333C7.31801 15.8306 6.77041 15.6355 6.32722 15.2792C6.07211 15.101 5.97488 15.0417 5.78277 15.0417C5.26277 15.1236 4.77214 15.34 4.35788 15.6703C4.19358 15.7895 3.99018 15.839 3.79065 15.8085C3.59111 15.7779 3.41106 15.6696 3.28851 15.5064C3.16596 15.3433 3.1105 15.138 3.13386 14.934C3.15721 14.73 3.25754 14.5432 3.41366 14.4131C4.09903 13.8715 4.92199 13.5403 5.78588 13.4583C6.30399 13.4668 6.80487 13.649 7.21077 13.9769C7.39579 14.1463 7.63401 14.2431 7.88277 14.25C8.51874 14.2015 9.1303 13.9803 9.65377 13.6095C9.82068 13.4864 10.0288 13.4357 10.2324 13.4687C10.436 13.5016 10.6184 13.6155 10.7395 13.7853Z"
+                                      fill="white"
+                                    />
+                                  </svg>
+
+                                  <span>
+                                    {resultData?.marks} / {resultData?.totalMarks}
+                                  </span>
+                                  <h4>Total MCQ Marks</h4>
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="150"
+                                    height="196"
+                                    viewBox="0 0 150 196"
+                                    fill="none"
+                                    className="light-svg-icon"
+                                  >
+                                    <g opacity="0.25">
+                                      <g clipPath="url(#clip0_727_19062)">
+                                        <rect width="155" height="198" fill="" />
+                                        <path
+                                          d="M157.579 43.4226L143.153 29.3436C139.117 25.3892 134.322 22.262 129.047 20.1432C123.772 18.0244 118.121 16.956 112.421 16.9998L57.3839 17.2681C45.8821 17.3378 34.8736 21.8913 26.7732 29.93C18.6727 37.9687 14.1418 48.8362 14.1742 60.1486L14.6619 179.621C14.7219 190.934 19.3414 201.757 27.5071 209.716C35.6729 217.675 46.7181 222.121 58.2201 222.079L127.634 221.74C139.136 221.671 150.145 217.117 158.245 209.079C166.346 201.04 170.877 190.172 170.844 178.86L170.414 73.5275C170.405 67.9223 169.266 62.3756 167.063 57.2081C164.86 52.0407 161.637 47.3551 157.579 43.4226ZM145.36 55.5492C146.595 56.7492 147.703 58.0706 148.664 59.4928L126.972 59.5986L126.885 38.2641C128.338 39.2071 129.693 40.2865 130.933 41.4873L145.36 55.5492ZM153.491 178.945C153.518 185.734 150.802 192.26 145.94 197.085C141.078 201.91 134.468 204.639 127.565 204.673L58.1504 205.011C51.2467 205.045 44.6148 202.38 39.7136 197.603C34.8123 192.825 32.0432 186.327 32.0155 179.537L31.5278 60.064C31.5001 53.2741 34.2159 46.7489 39.078 41.9239C43.94 37.0989 50.5499 34.3694 57.4536 34.3357L109.514 34.0819L109.619 59.6832C109.637 64.2098 111.483 68.5421 114.751 71.727C118.018 74.9119 122.44 76.6886 127.042 76.6661L153.073 76.5392L153.491 178.945ZM127.112 93.7337C129.413 93.7225 131.624 94.6108 133.257 96.2033C134.891 97.7957 135.814 99.9619 135.823 102.225C135.833 104.488 134.927 106.664 133.307 108.272C131.686 109.88 129.483 110.79 127.181 110.801L57.7672 111.14C55.466 111.151 53.2553 110.263 51.6216 108.67C49.9878 107.078 49.0648 104.912 49.0556 102.648C49.0463 100.385 49.9516 98.2099 51.5723 96.6016C53.193 94.9932 55.3963 94.0834 57.6975 94.0721L127.112 93.7337ZM135.963 136.36C135.972 138.624 135.067 140.799 133.446 142.407C131.825 144.015 129.622 144.925 127.321 144.936L57.9065 145.275C55.6053 145.286 53.3947 144.398 51.7609 142.805C50.1272 141.213 49.2041 139.047 49.1949 136.783C49.1857 134.52 50.091 132.345 51.7116 130.737C53.3323 129.128 55.5356 128.218 57.8369 128.207L127.251 127.869C129.552 127.858 131.763 128.746 133.397 130.338C135.031 131.931 135.954 134.097 135.963 136.36ZM134.416 165.494C135.772 167.313 136.34 169.586 135.997 171.817C135.653 174.048 134.425 176.055 132.581 177.399C123.815 183.603 113.418 187.189 102.636 187.726C96.3355 187.727 90.218 185.654 85.2581 181.837C82.4043 179.931 81.3171 179.296 79.1739 179.307C73.3764 180.218 67.9125 182.578 63.3057 186.16C61.4779 187.454 59.211 188 56.9837 187.681C54.7564 187.362 52.7429 186.205 51.3686 184.452C49.9943 182.7 49.3666 180.491 49.6181 178.29C49.8697 176.09 50.9807 174.071 52.7167 172.66C60.3387 166.785 69.505 163.17 79.1389 162.239C84.9192 162.302 90.515 164.239 95.0576 167.751C97.1291 169.567 99.7909 170.598 102.566 170.659C109.659 170.102 116.472 167.684 122.295 163.659C124.152 162.322 126.471 161.765 128.744 162.109C131.017 162.453 133.057 163.671 134.416 165.494Z"
+                                          fill="white"
                                         />
-                                        <span className="ms-2">
-                                          {optionIndex + 1}.{" "}
-                                          {option.option.title}
-                                        </span>
-                                      </li>
-                                    </label>
-                                  ))}
-                                </ul>
-                                <div className="btn-list">
-                                  {isOptionSelected && (
-                                    <span className="error resend">
-                                      Please Select Atleast One Option
-                                    </span>
-                                  )}
-                                  {currentQuestionIndex > 0 && (
-                                    <>
-                                      <Link
-                                        onClick={() =>
-                                          setCurrentMCQ(
-                                            lectureData,
-                                            currentQuestionIndex - 1
-                                          )
-                                        }
-                                      >
-                                        Previous
-                                      </Link>
-                                    </>
-                                  )}
-                                  {currentQuestionIndex <
-                                    lectureData?.mcqList?.length && (
-                                      <Link
-                                        onClick={() =>
-                                          handleOptionSubmit(
-                                            selectedOption,
-                                            lectureData?.mcqList[
-                                              currentQuestionIndex
-                                            ]?.studentLectureMCQMasterId
-                                          )
-                                        }
-                                        className="active-btn"
-                                      >
-                                        SAVE / NEXT
-                                      </Link>
-                                    )}
+                                      </g>
+                                    </g>
+                                    <defs>
+                                      <clipPath id="clip0_727_19062">
+                                        <rect width="155" height="198" fill="white" />
+                                      </clipPath>
+                                    </defs>
+                                  </svg>
                                 </div>
                               </div>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <div className="msp-list-item">
-                              <h3 className="section-heading question-heading-img">
-                                {currentQuestionIndex + 1}/
-                                {lectureData?.mcqList?.length}.{" "}
-                                {
-                                  lectureData?.mcqList[currentQuestionIndex]
-                                    ?.question?.title
-                                }
-                              </h3>
 
-                              <div className="msp-ans-module">
-                                <ul className="msp-ans-list p-0 m-0">
-                                  {lectureData?.mcqList[
-                                    currentQuestionIndex
-                                  ]?.options?.map((option, optionIndex) => (
-                                    <label className="radio-label w-100">
-                                      <li
-                                        key={option.mcqOptionMasterId}
-                                        className={`${option.isActualAnswer
-                                          ? "correct-ans"
-                                          : lectureData?.mcqList[
-                                            currentQuestionIndex
-                                          ]?.answerOptionMaster &&
-                                          !lectureData?.mcqList[
-                                            currentQuestionIndex
-                                          ]?.answerOptionMaster
-                                            .isActualAnswer &&
-                                          lectureData?.mcqList[
-                                            currentQuestionIndex
-                                          ]?.answerOptionMaster
-                                            .mcqOptionMasterId ==
-                                          option.mcqOptionMasterId &&
-                                          "wrong-ans"
-                                          }`}
+                              {resultData?.mcqList?.map((result, index) => (
+                                <>
+                                  <div className="msq-result-accordian-item">
+                                    <div
+                                      className="accordion accordion-flush"
+                                      id={"accordionFlush${index}"}
+                                    >
+                                      <div
+                                        className="accordion-item"
+                                        key={result.studentLectureMCQMasterId}
                                       >
-                                        <span className="ms-2">
-                                          {optionIndex + 1}.{" "}
-                                          {option.option.title}
-                                        </span>
-                                      </li>
-                                    </label>
-                                  ))}
-                                </ul>
+                                        <h2
+                                          className={`accordion-header ${result.answerOptionMaster?.isActualAnswer
+                                            ? "correct"
+                                            : "wrong"
+                                            }`}
+                                          id={`flush-heading${index}`}
+                                        >
+                                          <span
+                                            className="accordian-title"
+                                            type="span"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target={`#flush-collapse${index}`}
+                                            aria-expanded="false"
+                                            aria-controls={`flush-collapse${index}`}
+                                          >
+                                            {index + 1}. {result.question?.title}
+                                          </span>
+                                        </h2>
+                                        <div
+                                          id={`flush-collapse${index}`}
+                                          className="accordion-collapse collapse"
+                                          aria-labelledby={`flush-heading${index}`}
+                                          data-bs-parent={"#accordionFlush${index}"}
+                                        >
+                                          <div className="accordion-body py-3 px-auto">
+                                            {result?.options?.map((option, index) => (
+                                              <>
+                                                <ul className="mcq-ans-list">
+                                                  <li
+                                                    key={option.mcqOptionMasterId}
+                                                    className={
+                                                      option.isActualAnswer
+                                                        ? "correct-ans"
+                                                        : !result.answerOptionMaster
+                                                          ?.isActualAnswer &&
+                                                        result.answerOptionMaster
+                                                          ?.mcqOptionMasterId ===
+                                                        option.mcqOptionMasterId &&
+                                                        "wrong-ans"
+                                                    }
+                                                  >
+                                                    {index + 1}. {option.option.title}
+                                                  </li>
+                                                </ul>
+                                              </>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </>
+                              ))}
+                            </>
+                          )}
+                        </div>
 
-                                <div className="btn-list">
-                                  Quiz Already Given
-                                  {currentQuestionIndex > 0 && (
-                                    <>
-                                      <Link
-                                        onClick={() =>
-                                          setCurrentMCQ(
-                                            lectureData,
-                                            currentQuestionIndex - 1
-                                          )
-                                        }
-                                      >
-                                        Previous
-                                      </Link>
-                                    </>
-                                  )}
-                                  {currentQuestionIndex <=
-                                    lectureData?.mcqList?.length && (
-                                      <Link
-                                        onClick={() =>
-                                          setCurrentMCQ(
-                                            lectureData,
-                                            currentQuestionIndex + 1
-                                          )
-                                        }
-                                        className="active-btn"
-                                      >
-                                        NEXT
-                                      </Link>
-                                    )}
-                                </div>
-                              </div>
-                            </div>
-                          </>
-                        )}
                       </>
                     ) : (
                       <>
-                        <h3 className="section-heading">
-                          All Questions Have Been Completed.
-                        </h3>
-
-                        <div className="msq-result-list-item">
-                          <div
-                            className={`msq-result-block course-analytics-block ${resultData?.marks >= 7
-                              ? "green-bg"
-                              : resultData?.marks > 3
-                                ? "yellow-bg"
-                                : "red-bg"
-                              }`}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="14"
-                              height="19"
-                              viewBox="0 0 14 19"
-                              fill="none"
-                            >
-                              <path
-                                d="M12.8605 2.4716L11.5725 1.15901C11.2122 0.790346 10.7836 0.498084 10.3115 0.299142C9.83941 0.100201 9.33326 -0.00146933 8.82233 1.60435e-05H3.88889C2.85787 0.0012731 1.86943 0.418714 1.14039 1.16077C0.411352 1.90283 0.001235 2.90892 0 3.95835V15.0417C0.001235 16.0911 0.411352 17.0972 1.14039 17.8392C1.86943 18.5813 2.85787 18.9987 3.88889 19H10.1111C11.1421 18.9987 12.1306 18.5813 12.8596 17.8392C13.5886 17.0972 13.9988 16.0911 14 15.0417V5.27014C14.0012 4.75016 13.9012 4.23509 13.7056 3.75472C13.51 3.27436 13.2228 2.83824 12.8605 2.4716ZM11.7608 3.59101C11.8711 3.70289 11.9699 3.82598 12.0555 3.95835H10.1111V1.97918C10.2409 2.06731 10.3621 2.16806 10.4728 2.28001L11.7608 3.59101ZM12.4444 15.0417C12.4444 15.6716 12.1986 16.2756 11.761 16.721C11.3234 17.1664 10.7299 17.4167 10.1111 17.4167H3.88889C3.27005 17.4167 2.67656 17.1664 2.23897 16.721C1.80139 16.2756 1.55555 15.6716 1.55555 15.0417V3.95835C1.55555 3.32846 1.80139 2.72437 2.23897 2.27897C2.67656 1.83357 3.27005 1.58335 3.88889 1.58335H8.55555V3.95835C8.55555 4.37827 8.71944 4.781 9.01116 5.07793C9.30288 5.37486 9.69854 5.54168 10.1111 5.54168H12.4444V15.0417ZM10.1111 7.12501C10.3174 7.12501 10.5152 7.20842 10.6611 7.35688C10.8069 7.50535 10.8889 7.70671 10.8889 7.91668C10.8889 8.12664 10.8069 8.328 10.6611 8.47647C10.5152 8.62493 10.3174 8.70834 10.1111 8.70834H3.88889C3.68261 8.70834 3.48478 8.62493 3.33891 8.47647C3.19305 8.328 3.11111 8.12664 3.11111 7.91668C3.11111 7.70671 3.19305 7.50535 3.33891 7.35688C3.48478 7.20842 3.68261 7.12501 3.88889 7.12501H10.1111ZM10.8889 11.0833C10.8889 11.2933 10.8069 11.4947 10.6611 11.6431C10.5152 11.7916 10.3174 11.875 10.1111 11.875H3.88889C3.68261 11.875 3.48478 11.7916 3.33891 11.6431C3.19305 11.4947 3.11111 11.2933 3.11111 11.0833C3.11111 10.8734 3.19305 10.672 3.33891 10.5235C3.48478 10.3751 3.68261 10.2917 3.88889 10.2917H10.1111C10.3174 10.2917 10.5152 10.3751 10.6611 10.5235C10.8069 10.672 10.8889 10.8734 10.8889 11.0833ZM10.7395 13.7853C10.8604 13.9546 10.9106 14.1657 10.8789 14.3725C10.8473 14.5794 10.7365 14.765 10.5708 14.8889C9.78273 15.4604 8.84939 15.7884 7.88277 15.8333C7.31801 15.8306 6.77041 15.6355 6.32722 15.2792C6.07211 15.101 5.97488 15.0417 5.78277 15.0417C5.26277 15.1236 4.77214 15.34 4.35788 15.6703C4.19358 15.7895 3.99018 15.839 3.79065 15.8085C3.59111 15.7779 3.41106 15.6696 3.28851 15.5064C3.16596 15.3433 3.1105 15.138 3.13386 14.934C3.15721 14.73 3.25754 14.5432 3.41366 14.4131C4.09903 13.8715 4.92199 13.5403 5.78588 13.4583C6.30399 13.4668 6.80487 13.649 7.21077 13.9769C7.39579 14.1463 7.63401 14.2431 7.88277 14.25C8.51874 14.2015 9.1303 13.9803 9.65377 13.6095C9.82068 13.4864 10.0288 13.4357 10.2324 13.4687C10.436 13.5016 10.6184 13.6155 10.7395 13.7853Z"
-                                fill="white"
-                              />
-                            </svg>
-
-                            <span>
-                              {resultData?.marks} / {resultData?.totalMarks}
-                            </span>
-                            <h4>Total MCQ Marks</h4>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="150"
-                              height="196"
-                              viewBox="0 0 150 196"
-                              fill="none"
-                              className="light-svg-icon"
-                            >
-                              <g opacity="0.25">
-                                <g clipPath="url(#clip0_727_19062)">
-                                  <rect width="155" height="198" fill="" />
-                                  <path
-                                    d="M157.579 43.4226L143.153 29.3436C139.117 25.3892 134.322 22.262 129.047 20.1432C123.772 18.0244 118.121 16.956 112.421 16.9998L57.3839 17.2681C45.8821 17.3378 34.8736 21.8913 26.7732 29.93C18.6727 37.9687 14.1418 48.8362 14.1742 60.1486L14.6619 179.621C14.7219 190.934 19.3414 201.757 27.5071 209.716C35.6729 217.675 46.7181 222.121 58.2201 222.079L127.634 221.74C139.136 221.671 150.145 217.117 158.245 209.079C166.346 201.04 170.877 190.172 170.844 178.86L170.414 73.5275C170.405 67.9223 169.266 62.3756 167.063 57.2081C164.86 52.0407 161.637 47.3551 157.579 43.4226ZM145.36 55.5492C146.595 56.7492 147.703 58.0706 148.664 59.4928L126.972 59.5986L126.885 38.2641C128.338 39.2071 129.693 40.2865 130.933 41.4873L145.36 55.5492ZM153.491 178.945C153.518 185.734 150.802 192.26 145.94 197.085C141.078 201.91 134.468 204.639 127.565 204.673L58.1504 205.011C51.2467 205.045 44.6148 202.38 39.7136 197.603C34.8123 192.825 32.0432 186.327 32.0155 179.537L31.5278 60.064C31.5001 53.2741 34.2159 46.7489 39.078 41.9239C43.94 37.0989 50.5499 34.3694 57.4536 34.3357L109.514 34.0819L109.619 59.6832C109.637 64.2098 111.483 68.5421 114.751 71.727C118.018 74.9119 122.44 76.6886 127.042 76.6661L153.073 76.5392L153.491 178.945ZM127.112 93.7337C129.413 93.7225 131.624 94.6108 133.257 96.2033C134.891 97.7957 135.814 99.9619 135.823 102.225C135.833 104.488 134.927 106.664 133.307 108.272C131.686 109.88 129.483 110.79 127.181 110.801L57.7672 111.14C55.466 111.151 53.2553 110.263 51.6216 108.67C49.9878 107.078 49.0648 104.912 49.0556 102.648C49.0463 100.385 49.9516 98.2099 51.5723 96.6016C53.193 94.9932 55.3963 94.0834 57.6975 94.0721L127.112 93.7337ZM135.963 136.36C135.972 138.624 135.067 140.799 133.446 142.407C131.825 144.015 129.622 144.925 127.321 144.936L57.9065 145.275C55.6053 145.286 53.3947 144.398 51.7609 142.805C50.1272 141.213 49.2041 139.047 49.1949 136.783C49.1857 134.52 50.091 132.345 51.7116 130.737C53.3323 129.128 55.5356 128.218 57.8369 128.207L127.251 127.869C129.552 127.858 131.763 128.746 133.397 130.338C135.031 131.931 135.954 134.097 135.963 136.36ZM134.416 165.494C135.772 167.313 136.34 169.586 135.997 171.817C135.653 174.048 134.425 176.055 132.581 177.399C123.815 183.603 113.418 187.189 102.636 187.726C96.3355 187.727 90.218 185.654 85.2581 181.837C82.4043 179.931 81.3171 179.296 79.1739 179.307C73.3764 180.218 67.9125 182.578 63.3057 186.16C61.4779 187.454 59.211 188 56.9837 187.681C54.7564 187.362 52.7429 186.205 51.3686 184.452C49.9943 182.7 49.3666 180.491 49.6181 178.29C49.8697 176.09 50.9807 174.071 52.7167 172.66C60.3387 166.785 69.505 163.17 79.1389 162.239C84.9192 162.302 90.515 164.239 95.0576 167.751C97.1291 169.567 99.7909 170.598 102.566 170.659C109.659 170.102 116.472 167.684 122.295 163.659C124.152 162.322 126.471 161.765 128.744 162.109C131.017 162.453 133.057 163.671 134.416 165.494Z"
-                                    fill="white"
-                                  />
-                                </g>
-                              </g>
-                              <defs>
-                                <clipPath id="clip0_727_19062">
-                                  <rect width="155" height="198" fill="white" />
-                                </clipPath>
-                              </defs>
-                            </svg>
-                          </div>
+                        <div className="card-shadow mt-5 px-3">
+                          <h3 className="section-heading m-0 mb-4">
+                            No MCQ were Available For This Lecture
+                          </h3>
                         </div>
-
-                        {resultData?.mcqList?.map((result, index) => (
-                          <>
-                            <div className="msq-result-accordian-item">
-                              <div
-                                className="accordion accordion-flush"
-                                id={"accordionFlush${index}"}
-                              >
-                                <div
-                                  className="accordion-item"
-                                  key={result.studentLectureMCQMasterId}
-                                >
-                                  <h2
-                                    className={`accordion-header ${result.answerOptionMaster?.isActualAnswer
-                                      ? "correct"
-                                      : "wrong"
-                                      }`}
-                                    id={`flush-heading${index}`}
-                                  >
-                                    <span
-                                      className="accordian-title"
-                                      type="span"
-                                      data-bs-toggle="collapse"
-                                      data-bs-target={`#flush-collapse${index}`}
-                                      aria-expanded="false"
-                                      aria-controls={`flush-collapse${index}`}
-                                    >
-                                      {index + 1}. {result.question?.title}
-                                    </span>
-                                  </h2>
-                                  <div
-                                    id={`flush-collapse${index}`}
-                                    className="accordion-collapse collapse"
-                                    aria-labelledby={`flush-heading${index}`}
-                                    data-bs-parent={"#accordionFlush${index}"}
-                                  >
-                                    <div className="accordion-body py-3 px-auto">
-                                      {result?.options?.map((option, index) => (
-                                        <>
-                                          <ul className="mcq-ans-list">
-                                            <li
-                                              key={option.mcqOptionMasterId}
-                                              className={
-                                                option.isActualAnswer
-                                                  ? "correct-ans"
-                                                  : !result.answerOptionMaster
-                                                    ?.isActualAnswer &&
-                                                  result.answerOptionMaster
-                                                    ?.mcqOptionMasterId ===
-                                                  option.mcqOptionMasterId &&
-                                                  "wrong-ans"
-                                              }
-                                            >
-                                              {index + 1}. {option.option.title}
-                                            </li>
-                                          </ul>
-                                        </>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </>
-                        ))}
                       </>
-                    )}
-                  </div>
+                    )
+                  }
                 </div>
 
                 <div

@@ -5,6 +5,7 @@ import axios from "../helper/axios";
 import { AuthContext } from "../context/AuthContext";
 import placeHolderSvg from "../assets/prideplaceholder.svg";
 import ExamModal from "../components/ExamModal";
+import Loading from "../components/Loading";
 
 const EnrollCourseDetail = () => {
   const [detailData, setDetailData] = useState([]);
@@ -12,17 +13,21 @@ const EnrollCourseDetail = () => {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [instructions, setInstructions] = useState();
+  const [loading, setLoading] = useState(false);
 
   const getInstructions = async () => {
     setShowModal(true);
     try {
+      setLoading(true);
       const response = await axios.get(`exam/getExamInstructions/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+      setLoading(false);
       setInstructions(response.data.data);
     } catch (error) {
+      setLoading(false);
       console.error("Error Fetching Instructions", error);
     }
   };
@@ -39,13 +44,16 @@ const EnrollCourseDetail = () => {
 
   const fetchEnrollCourseDetails = async () => {
     try {
+      setLoading(true);
       const res = await axios.get(`enroll/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+      setLoading(false);
       setDetailData(res.data.data);
     } catch (error) {
+      setLoading(false);
       console.error("Error Fetching Data", error);
     }
   };
@@ -63,6 +71,7 @@ const EnrollCourseDetail = () => {
   return (
     <>
       <DashboardNavbar />
+      {loading ? ( <Loading /> ) : (<></>)}
       <section className="enroll-course-detail-section">
         <div className="container">
           <div className="row">

@@ -210,7 +210,6 @@ const Profile = () => {
 
     return `${day} ${month}, ${year}`;
   };
-  console.log('userData', userData);
   return (
     <>
       <span className="col-1 text-end fw-bold">
