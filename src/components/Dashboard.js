@@ -42,10 +42,13 @@ const Dashboard = () => {
     }
   };
 
+  const date = new Date();
+  const hour = date.getHours();
+
   const getPracticeAttendance = async () => {
     try {
       // setLoading(true);
-      const res = await axios.get("attendance/practiceAttendance/18:00:00", {
+      const res = await axios.get("attendance/practiceAttendance/"+((hour.toString().length == 1) ? "0"+hour : hour )+":00:00", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
