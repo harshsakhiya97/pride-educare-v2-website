@@ -5,28 +5,7 @@ import axios from "../helper/axios";
 import { AuthContext } from "../context/AuthContext";
 
 const Home = () => {
-  const defaultData = [
-    {
-      category: {
-        name: "",
-      },
-      courseList: [
-        {
-          courseMasterId: 0,
-          courseName: "",
-          actualPrice: 0,
-          offeredPrice: 0,
-          courseThumbnail: {
-            documentName: "",
-            filePath: "",
-            fileType: "",
-          },
-          noOfLectures: 0,
-          noOfVideos: 0,
-        },
-      ],
-    },
-  ];
+  const defaultData = [];
   const [courses, setCourses] = useState(defaultData);
   const [activeTab, setActiveTab] = useState(0);
   const [showVideo, setShowVideo] = useState(false);
@@ -298,6 +277,7 @@ const Home = () => {
         <div className="container">
           <div className="row">
             <div className="col-12">
+            {courses.length > 0 ? ( <>
               <div className="d-flex align-items-start flex-wrap-mb">
                 <div
                   className="nav flex-column nav-pills me-3"
@@ -417,6 +397,9 @@ const Home = () => {
                   ))}
                 </div>
               </div>
+            </>
+              ) : (<></>)
+            }
             </div>
           </div>
         </div>

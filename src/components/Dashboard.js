@@ -5,14 +5,21 @@ import axios from "../helper/axios";
 import { AuthContext } from "../context/AuthContext";
 import placeholderSvg from "../assets/prideplaceholder.svg";
 import Loading from "./Loading";
+import PracticeAttendanceModal from "../Pages/PracticeAttendanceModal";
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [dashData, setDashData] = useState([]);
+  const [isModalData, setModalData] = useState(false);
+  const [showPracticeAttendance, setShowPracticeAttendance] = useState(false);
+  const [batchTime, setBatchTime] = useState(null);
+  const [franchiseList, setFranchiseList] = useState([]);
+  const [staffList, setStaffList] = useState([]);
   const { token } = useContext(AuthContext);
 
   useEffect(() => {
     fetchData();
+    getPracticeAttendance();
   }, [token]);
 
   const fetchData = async () => {
@@ -34,6 +41,46 @@ const Dashboard = () => {
       console.error("Error Fetching Data", err);
     }
   };
+
+  const getPracticeAttendance = async () => {
+    try {
+      // setLoading(true);
+      const res = await axios.get("attendance/practiceAttendance/18:00:00", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setShowPracticeAttendance(res.data.data.showPractice == "SHOW-PRACTICE")
+      setFranchiseList(res.data.data.franchiseMasterList)
+      setBatchTime(res.data.data.batchTime)
+    } catch (err) {
+      // setLoading(false);
+      console.error("Error Fetching Data", err);
+    }
+  };
+
+  const fetchStaffList = async (franchiseMasterID) => {
+    setLoading(true);
+    try {
+      const response = await axios.post(`staff/list-name`,
+        {
+          franchiseMasterId: franchiseMasterID,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setStaffList(response.data.data.list);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error Fetching Data", error);
+      setLoading(false);
+    }
+  }
+
 
   const recommended = dashData.find((data) => data.type === "RECOMMENDED");
 
@@ -62,7 +109,21 @@ const Dashboard = () => {
   return (
     <>
       <DashboardNavbar />
-      {loading ? ( <Loading /> ) : (<></>)}
+      {
+        isModalData &&
+        <PracticeAttendanceModal
+          show={isModalData}
+          hide={() => setModalData(false)}
+          loading={(req) => setLoading(req)}
+          getPracticeAttendance={() => getPracticeAttendance()}
+          batchTime={batchTime}
+          franchiseList={franchiseList}
+          staffList={staffList}
+          fetchStaffList={(franchiseMasterId) => fetchStaffList(franchiseMasterId)}
+        />
+      }
+
+      {loading ? (<Loading />) : (<></>)}
       <section className="dashboard-section pb-5">
         <div className="container mt-5">
           <div className="row">
@@ -516,6 +577,14 @@ const Dashboard = () => {
             </div>
           </div> */}
 
+              {
+                showPracticeAttendance &&
+                <Link
+                  onClick={() => setModalData(true)}
+                  className="btn btn-primary btn-lg px-5"
+                >
+                  Practice Attendance
+                </Link>}
               <h4 className="course-title">Recommended</h4>
               {recommended?.courseMasterList?.map((recommend) => (
                 <>

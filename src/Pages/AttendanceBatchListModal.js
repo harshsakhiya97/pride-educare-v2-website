@@ -4,7 +4,7 @@ import axios from '../helper/axios';
 import { AuthContext } from '../context/AuthContext';
 
 export default function AttendanceBatchListModal(props) {
-  console.log('props.data', props);
+  // console.log('props.data', props);
   const [batch, setBatch] = useState("");
   const [isError, setError] = useState(false);
   const { token } = useContext(AuthContext);
@@ -18,7 +18,8 @@ export default function AttendanceBatchListModal(props) {
         },
         "studentLectureMaster": {
           "studentLectureMasterId": props.studentLectureMasterId
-        }
+        },
+        "type": "PRESENT"
       })
       try {
         const response = await axios.post(`attendance/save`, details,
