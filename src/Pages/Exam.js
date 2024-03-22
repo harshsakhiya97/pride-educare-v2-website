@@ -343,8 +343,7 @@ const Exam = () => {
                                   }
                                 />
                                 <span className="ms-2">
-                                  {optionIndex + 1}
-                                  {" > "} {option.option.title}
+                                  {option.option.title}
                                 </span>
                               </li>
                             </label>
