@@ -18,6 +18,8 @@ import Popup from "./components/Popup";
 import SearchCourses from "./Pages/SearchCourses";
 import Exam from "./Pages/Exam";
 import ShortLink from "./Pages/ShortLink";
+import PrivacyPolicy from "./components/PrivacyPolicy";
+import TermsCondition from "./components/TermsCondition";
 
 function App() {
   return (
@@ -27,6 +29,8 @@ function App() {
         <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/p/:link" element={<ShortLink />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-condition" element={<TermsCondition />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Registration />} />
           <Route path="/buy-now/:id" element={<BuyNow />} />

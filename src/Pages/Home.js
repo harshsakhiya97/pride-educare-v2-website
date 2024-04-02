@@ -18,7 +18,7 @@ const Home = () => {
 
   const fetchCourses = async () => {
     try {
-      const param = { withAll: true };
+      const param = { withAll: true, pageNumber: 0, pageSize: 10  };
       const response = await axios.post("course/listWithCategory", param, {
         headers: {
           Authorization: `Bearer ${token}`,
