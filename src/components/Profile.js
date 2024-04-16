@@ -18,6 +18,7 @@ const Profile = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showFailureModal, setShowFailureModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  
   const [balance, setBalance] = useState(0);
 
 
@@ -120,6 +121,33 @@ const Profile = () => {
         setShowPaymentModal(false);
       }
     }
+  };
+
+  const generateReceipt = async (e,receipt) => {
+    e.preventDefault();
+
+    try {
+      const response = await axios.post(
+        "receipt/print/"+receipt.receiptMasterId,
+        {
+          amount: balance,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      window.open(
+        response.data.data.receiptFile?.filePath,
+        "_blank"
+      );
+
+    } catch (error) {
+      console.error("Error In Receipt Print", error);
+    }
+
   };
 
   const toggleDropdown = () => {
@@ -606,9 +634,10 @@ const Profile = () => {
               <>
                 <li key={receipt.receiptMasterId}>
                   <Link
-                    download={receipt.receiptFile?.filePath}
-                    target="_blank"
-                    rel="noreferrer"
+                    // download={receipt.receiptFile?.filePath}
+                    // target="_blank"
+                    // rel="noreferrer"
+                    onClick={(e) => generateReceipt(e,receipt)}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
