@@ -20,6 +20,7 @@ import Exam from "./Pages/Exam";
 import ShortLink from "./Pages/ShortLink";
 import PrivacyPolicy from "./components/PrivacyPolicy";
 import TermsCondition from "./components/TermsCondition";
+import ContactUs from "./components/ContactUs";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/p/:link" element={<ShortLink />} />
         <Route path="/updated-privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/terms-condition" element={<TermsCondition />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Registration />} />
