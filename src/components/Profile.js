@@ -400,7 +400,7 @@ const Profile = () => {
                 <span>Contact Us</span>
               </Link>
             </li>
-            <li>
+            {/* <li>
               <Link href="/">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -419,7 +419,7 @@ const Profile = () => {
 
                 <span>My Certificates</span>
               </Link>
-            </li>
+            </li> */}
             <li>
               <Link href="/" onClick={logout}>
                 <svg

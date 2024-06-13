@@ -264,6 +264,14 @@ span.error {
   line-height: normal;
 }
 
+.login-form p.description {
+  text-align: center;
+  font-family: Poppins;
+  font-size: 12px;
+  font-style: normal;
+  line-height: normal;
+}
+
 .login-form span.error,
 .login-form span.error a {
   color: #fc6b57;

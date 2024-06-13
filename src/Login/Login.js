@@ -10,6 +10,7 @@ const Login = () => {
   const [sentOtp, setSentOtp] = useState(false);
   const [otpError, setOtpError] = useState(false);
   const [number, setNumber] = useState("");
+  const [loginErrorMessage, setLoginErrorMessage] = useState("");
   const [registrationError, setRegistrationError] = useState(null);
 
   const navigate = useNavigate();
@@ -18,6 +19,8 @@ const Login = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    console.log(name);
+    console.log(value);
     setStudentDetails({ ...studentDetails, [name]: value });
   };
 
@@ -26,17 +29,12 @@ const Login = () => {
     lastName: "",
     email: "",
     phone: "",
+    dob: "",
   });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     // console.log("submit", number);
-    setStudentDetails({
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: number,
-    });
 
     try {
       const response = await axios.post("/student/register", studentDetails);
@@ -44,6 +42,15 @@ const Login = () => {
 
       if (data.status === "OK" && data.code === "200") {
         // console.log("Registration successful:", data.message);
+
+        setStudentDetails({
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: number,
+          dob: "",
+        });
+
         sendRegPhoneNumber();
       } else {
         // console.log(data.message, "msg");
@@ -73,22 +80,17 @@ const Login = () => {
       // console.log(data.data, "data");
 
       if (data.status === "OK" && data.code === "200") {
-        console.log("Your OTP is : ", data.data.otp);
+        // console.log("Your OTP is : ", data.data.otp);
         setOtp(data.data.otp);
         setSentOtp(true);
         setCurrentStep("otp");
       }
     } catch (error) {
+      console.log(error);
       if (
         error.response &&
         error.response.data.errorMsg.errorMessage === "User not found!"
       ) {
-        // alert(error.response.data.errorMsg.errorMessage);
-        console.log(
-          error.response.data.errorMsg.errorMessage,
-          number,
-          "errNum"
-        );
         setCurrentStep("registration");
         setStudentDetails({
           ...studentDetails,
@@ -96,16 +98,18 @@ const Login = () => {
         });
       }
 
-      console.error("Network error", error.response);
+      // console.error("Network error", error.response);
     }
   };
 
   const sendPhoneNumber = async (e) => {
     e.preventDefault();
 
+    setLoginErrorMessage("")
+
     if (!number) {
       alert("Please enter a number");
-    } else if(number.length != 10) {
+    } else if (number.length != 10) {
       alert("Please enter a valid number");
     } else {
       try {
@@ -117,30 +121,33 @@ const Login = () => {
         // console.log(data.data, "data");
 
         if (data.status === "OK" && data.code === "200") {
-          console.log("Your OTP is : ", data.data.otp);
+          // console.log("Your OTP is : ", data.data.otp);
           setOtp(data.data.otp);
           setSentOtp(true);
           setCurrentStep("otp");
         }
       } catch (error) {
-        if (
-          error.response &&
-          error.response.data.errorMsg.errorMessage === "User not found!"
-        ) {
-          // alert(error.response.data.errorMsg.errorMessage);
-          console.log(
-            error.response.data.errorMsg.errorMessage,
-            number,
-            "errNum"
-          );
-          setCurrentStep("registration");
-          setStudentDetails({
-            ...studentDetails,
-            phone: number,
-          });
+
+        if ( error.response ) {
+
+          if(error.response.status == 400) { // registration
+
+            setCurrentStep("registration");
+            setStudentDetails({
+              ...studentDetails,
+              phone: number,
+            });
+  
+          } else if(error.response.status == 500) { // dob not found
+
+            console.log(error.response);
+            setLoginErrorMessage(error.response.data.errorMsg.errorMessage)
+
+          }
+
         }
 
-        console.error("Network error", error.response);
+        // console.error("Network error", error.response);
       }
     }
   };
@@ -212,6 +219,14 @@ const Login = () => {
                   <a href="/">Terms & Conditions</a> and{" "}
                   <a href="/">Privacy Policy</a> in use of the Pride Educare App
                 </span>
+                {
+                  loginErrorMessage && 
+                  <>
+                  <span className="error">
+                    {loginErrorMessage}
+                  </span><br />  
+                  </>
+                }
                 <button className="btn btn-primary mt-3" type="submit">
                   {/* <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -277,7 +292,7 @@ const Login = () => {
                   name="userOtp"
                   onChange={handleOtpChange}
                   maxLength={6}
-                  placeholder="Enter OTP Here"
+                  placeholder="Enter Password"
                 />
                 <button className="btn" type="submit">
                   <svg
@@ -294,25 +309,13 @@ const Login = () => {
                   </svg>
                 </button>
               </form>
-              {sentOtp && (
-                <p className="phone-no">
-                  Otp has been sent to{" "}
-                  <a href={`tel:+91${number}`}>
-                    <b>+91 {`${number}`}</b>
-                  </a>
-                </p>
-              )}
+           
               {otpError && (
-                <span style={{ display: "block" }} className="error">
-                  Incorrect otp detected,{" "}
-                  <a
-                    className="resend"
-                    style={{ cursor: "pointer" }}
-                    onClick={sendPhoneNumber}
-                  >
-                    <b>Resend Otp</b>
-                  </a>
-                </span>
+                <>
+                  <span style={{ display: "block" }} className="error">
+                    Invalid Password
+                  </span>
+                </>
               )}
             </div>
           )}
@@ -359,6 +362,15 @@ const Login = () => {
                   required
                   disabled
                 />
+
+                <input
+                  onChange={handleChange}
+                  name="dob"
+                  type="date"
+                  className="mb-4"
+                  required
+                />
+
 
                 <button
                   className="btn btn-primary text-center mb-1"
