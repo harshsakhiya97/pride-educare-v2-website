@@ -138,7 +138,7 @@ const Login = () => {
               phone: number,
             });
   
-          } else if(error.response.status == 500) { // dob not found
+          } else if(error.response.status == 417) { // dob not found
 
             console.log(error.response);
             setLoginErrorMessage(error.response.data.errorMsg.errorMessage)
