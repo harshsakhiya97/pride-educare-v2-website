@@ -140,8 +140,7 @@ const Login = () => {
   
           } else if(error.response.status == 417) { // dob not found
 
-            console.log(error.response);
-            setLoginErrorMessage(error.response.data.errorMsg.errorMessage)
+            setLoginErrorMessage(error.response.data.data.message);
 
           }
 
