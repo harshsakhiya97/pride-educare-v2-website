@@ -13,6 +13,7 @@ const Profile = () => {
   const [isOpenContact, setIsOpenContact] = useState(false);
   const [successBox, setSuccessBox] = useState(false);
   const [receiptData, setReceiptData] = useState([]);
+  const [showPayment, setShowPayment] = useState(false);
 
   const [isError, setError] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -176,6 +177,7 @@ const Profile = () => {
 
   const handleReceiptClick = () => {
     toggleDropdown();
+    fetchShowPayment();
     fetchReceiptData();
   };
 
@@ -224,6 +226,22 @@ const Profile = () => {
         }
       );
       setReceiptData(response.data.data);
+    } catch (error) {
+      console.error("Error Fetching Receipt Data", error);
+    }
+  };
+
+  const fetchShowPayment = async () => {
+    try {
+      const response = await axios.get(
+        "receipt/show-payment",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setShowPayment(response.data.data);
     } catch (error) {
       console.error("Error Fetching Receipt Data", error);
     }
@@ -628,7 +646,7 @@ const Profile = () => {
           </div>
           <ul>
             {
-              userData && userData.balance > 0 &&
+              userData && userData.balance > 0 && showPayment && 
               <button className="btn btn-primary mb-3" onClick={() => setShowPaymentModal(true)}>Pay Now</button>}
             {receiptData?.list?.map((receipt, index) => (
               <>
