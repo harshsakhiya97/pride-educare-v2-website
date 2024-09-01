@@ -1,5 +1,5 @@
 import React, { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "../helper/axios";
 import { AuthContext } from "../context/AuthContext";
 
@@ -146,8 +146,12 @@ const Login = () => {
                 />
                 <span className="d-block mt-3">
                   By providing my number, I hereby agree and accept the{" "}
-                  <a href="/">Terms & Conditions</a> and{" "}
-                  <a href="/">Privacy Policy</a> in use of the Pride Educare App
+                  <Link to="/terms-condition">
+                    Terms & Conditions
+                  </Link> and{" "}
+                  <Link to="/privacy-policy">
+                    Privacy Policy
+                  </Link> in use of the Pride Educare App
                 </span>
                 <button className="btn btn-primary mt-3" type="submit">
                   {/* <svg
@@ -300,8 +304,12 @@ const Login = () => {
                 </button>
                 <span>
                   By providing my number, I hereby agree and accept the{" "}
-                  <a href="/">Terms & Conditions</a> and{" "}
-                  <a href="/">Privacy Policy</a> in use of the Pride Educare App
+                  <Link to="/terms-condition">
+                    Terms & Conditions
+                  </Link> and{" "}
+                  <Link to="/privacy-policy">
+                    Privacy Policy
+                  </Link> in use of the Pride Educare App
                 </span>
               </form>
             </div>

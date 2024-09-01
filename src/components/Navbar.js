@@ -65,9 +65,9 @@ const Navbar = () => {
           </div>
 
           <div className="col-sm-1 col-4">
-            <a href="/courses" className="nav-link">
+            <Link to="/courses" className="nav-link">
               Courses
-            </a>
+            </Link>
           </div>
 
           {token ? (

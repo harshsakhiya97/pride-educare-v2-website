@@ -1,5 +1,5 @@
 import React, { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "../helper/axios";
 import { AuthContext } from "../context/AuthContext";
 
@@ -128,17 +128,17 @@ const Login = () => {
         }
       } catch (error) {
 
-        if ( error.response ) {
+        if (error.response) {
 
-          if(error.response.status == 400) { // registration
+          if (error.response.status == 400) { // registration
 
             setCurrentStep("registration");
             setStudentDetails({
               ...studentDetails,
               phone: number,
             });
-  
-          } else if(error.response.status == 417) { // dob not found
+
+          } else if (error.response.status == 417) { // dob not found
 
             setLoginErrorMessage(error.response.data.data.message);
 
@@ -215,15 +215,19 @@ const Login = () => {
                 />
                 <span className="d-block mt-3">
                   By providing my number, I hereby agree and accept the{" "}
-                  <a href="/">Terms & Conditions</a> and{" "}
-                  <a href="/">Privacy Policy</a> in use of the Pride Educare App
+                  <Link to="/terms-condition">
+                    Terms & Conditions
+                  </Link> and{" "}
+                  <Link to="/privacy-policy">
+                    Privacy Policy
+                  </Link> in use of the Pride Educare App
                 </span>
                 {
-                  loginErrorMessage && 
+                  loginErrorMessage &&
                   <>
-                  <span className="error">
-                    {loginErrorMessage}
-                  </span><br />  
+                    <span className="error">
+                      {loginErrorMessage}
+                    </span><br />
                   </>
                 }
                 <button className="btn btn-primary mt-3" type="submit">
@@ -308,7 +312,7 @@ const Login = () => {
                   </svg>
                 </button>
               </form>
-           
+
               {otpError && (
                 <>
                   <span style={{ display: "block" }} className="error">
@@ -379,8 +383,12 @@ const Login = () => {
                 </button>
                 <span className="mt-3">
                   By providing my number, I hereby agree and accept the{" "}
-                  <a href="/">Terms & Conditions</a> and{" "}
-                  <a href="/">Privacy Policy</a> in use of the Pride Educare App
+                  <Link to="/terms-condition">
+                    Terms & Conditions
+                  </Link> and{" "}
+                  <Link to="/privacy-policy">
+                    Privacy Policy
+                  </Link> in use of the Pride Educare App
                 </span>
                 {registrationError && (
                   <p className="error">{registrationError}</p>

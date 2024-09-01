@@ -247,7 +247,7 @@ const Profile = () => {
       <div className="col-1 text-center">
         <div className="btn-group dash-client-dropdown dropdown">
           <Link
-            href="/dashboard"
+            to="/dashboard"
             className="dropdown-toggle dash-client-img"
             data-bs-toggle="dropdown"
             aria-expanded="false"
@@ -358,7 +358,7 @@ const Profile = () => {
             </li>
             <li>
               <Link
-                href="/"
+                to="/"
                 className="dropdown-link"
                 onClick={toggleDropdownSupport}
               >
@@ -379,7 +379,7 @@ const Profile = () => {
             </li>
             <li>
               <Link
-                href="/"
+                to="/"
                 className="dropdown-link"
                 onClick={toggleDropdownContact}
               >
@@ -401,7 +401,7 @@ const Profile = () => {
               </Link>
             </li>
             {/* <li>
-              <Link href="/">
+              <Link to="/">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="25"
@@ -421,7 +421,7 @@ const Profile = () => {
               </Link>
             </li> */}
             <li>
-              <Link href="/" onClick={logout}>
+              <Link to="/" onClick={logout}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="18"

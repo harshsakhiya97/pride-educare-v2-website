@@ -1,5 +1,5 @@
 import "./MainStyle.css";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, HashRouter } from "react-router-dom";
 import Home from "./Pages/Home";
 import Login from "./Login/Login";
 import Registration from "./Login/Registration";
@@ -25,12 +25,12 @@ import ContactUs from "./components/ContactUs";
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <HashRouter>
         <ScrollToTop />
         <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/p/:link" element={<ShortLink />} />
-        <Route path="/updated-privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/terms-condition" element={<TermsCondition />} />
           <Route path="/login" element={<Login />} />
@@ -49,7 +49,7 @@ function App() {
           </Route>
           {/* <Route path="/popup" element={<Popup />} /> */}
         </Routes>
-      </Router>
+      </HashRouter>
     </AuthProvider>
   );
 }
