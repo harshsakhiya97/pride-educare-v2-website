@@ -51,6 +51,7 @@ const EnrollCourseDetail = () => {
         },
       });
       setLoading(false);
+      console.log(res.data.data);
       setDetailData(res.data.data);
     } catch (error) {
       setLoading(false);
@@ -71,7 +72,7 @@ const EnrollCourseDetail = () => {
   return (
     <>
       <DashboardNavbar />
-      {loading ? ( <Loading /> ) : (<></>)}
+      {loading ? (<Loading />) : (<></>)}
       <section className="enroll-course-detail-section">
         <div className="container">
           <div className="row">
@@ -283,8 +284,10 @@ const EnrollCourseDetail = () => {
             <div className="col-3 ps-4">
               <div className="row course-analytics-sidebar">
                 <div className="col-12">
-                  <h4 className="course-title">
-                    Course Analytics - {detailData?.status?.name}
+                  <h4 className="course-title" style={{ height: "auto" }}>
+                    Course Analytics - {detailData?.status?.name}<br />
+                    Offline Lecture Attended - {detailData?.totalAttendedLectures} / {detailData?.studentLectureMasterList?.length}<br />
+                    Uploaded Assignment - {detailData?.totalAssignmentUploaded}<br />
                   </h4>
                 </div>
                 <div className="col-3 col-12 mb-5">
@@ -467,7 +470,7 @@ const EnrollCourseDetail = () => {
                   </div>
                 </div>
 
-                {!detailData?.isExamGiven ? (
+                {detailData?.allowInternalExam ? (
                   <>
                     <div className="col-3 col-12 mb-5 text-center">
                       <Link
@@ -494,7 +497,10 @@ const EnrollCourseDetail = () => {
                       />
                     </div>
                   </>
-                ) : (
+                ) : (<></>)
+                }
+
+                {detailData?.isExamGiven ? (
                   <>
                     <div className="col-3 col-12 mb-5">
                       <div className="course-analytics-block blue-bg">
@@ -559,12 +565,12 @@ const EnrollCourseDetail = () => {
                       </div>
                     </div>
                   </>
-                )}
+                ) : (<></>)}
               </div>
             </div>
           </div>
         </div>
-      </section>
+      </section >
     </>
   );
 };
