@@ -286,7 +286,7 @@ const EnrollCourseDetail = () => {
                 <div className="col-12">
                   <h4 className="course-title" style={{ height: "auto" }}>
                     Course Analytics - {detailData?.status?.name}<br />
-                    Offline Lecture Attended - {detailData?.totalAttendedLectures} / {detailData?.studentLectureMasterList?.length}<br />
+                    Offline Attended - {detailData?.totalAttendedLectures} / {detailData?.studentLectureMasterList?.length}<br />
                     Uploaded Assignment - {detailData?.totalAssignmentUploaded}<br />
                   </h4>
                 </div>
