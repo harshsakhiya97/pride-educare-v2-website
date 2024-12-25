@@ -29,7 +29,7 @@ export default function AttendanceBatchListModal(props) {
             },
           }
         );
-        props.fetchAttendanceBatchList();
+        props.fetchEnrollLectureData();
         props.hide();
       } catch (error) {
         console.error("Error Fetching Lecture Data", error);

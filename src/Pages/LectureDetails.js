@@ -101,7 +101,7 @@ const LectureDetails = () => {
     }
   }
 
-  const fetchEnrollLectureData = async (selectedID) => {
+  const fetchEnrollLectureData = async (selectedID = lectureId) => {
     fetchAttendanceBatchList(selectedID);
     setLoading(true);
     try {
@@ -322,7 +322,7 @@ const LectureDetails = () => {
           hide={() => setModalData(false)}
           data={attendanceBatchListData.list}
           studentLectureMasterId={lectureId}
-          fetchAttendanceBatchList={() => fetchAttendanceBatchList()}
+          fetchEnrollLectureData={() => fetchEnrollLectureData()}
         />
       }
       <div className="container">
@@ -1011,7 +1011,7 @@ const LectureDetails = () => {
                               </>
                             ) : (
                               <>
-                                {hideFileSelected && (
+                                {(hideFileSelected && lectureData.attendanceCount > 0) && (
                                   <>
                                     <input
                                       className="active-btn"
