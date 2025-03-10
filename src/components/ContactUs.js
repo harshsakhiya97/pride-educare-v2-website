@@ -1,9 +1,12 @@
 import React from "react";
 import DashboardNavbar from "./DashboardNavbar";
+import Footer from "../Pages/Footer";
+import Navbar from "./Navbar";
 
 const ContactUs = () => {
   return (
     <>
+      <Navbar />
       <section>
         <div className="container">
           <div className="row mt-5">
@@ -87,6 +90,8 @@ const ContactUs = () => {
           </div>
         </div>
       </section>
+      <Footer />
+
     </>
   );
 };

@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar";
 import { Link, useParams } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import placeHolderSvg from "../assets/prideplaceholder.svg";
+import Footer from "./Footer";
 
 const SearchCourses = () => {
   const { token } = useContext(AuthContext);
@@ -260,6 +261,8 @@ const SearchCourses = () => {
           </div>
         </div>
       </section>
+      <Footer />
+
     </>
   );
 };

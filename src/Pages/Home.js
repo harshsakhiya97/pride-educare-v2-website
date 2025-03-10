@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import Navbar from "../components/Navbar";
+import Footer from "./Footer";
 import { NavLink, useNavigate } from "react-router-dom";
 import axios from "../helper/axios";
 import { AuthContext } from "../context/AuthContext";
@@ -495,7 +496,7 @@ const Home = () => {
                   <iframe
                     width="100%"
                     height="600px"
-                    src="https://www.youtube.com/embed/RDV3Z1KCBvo?si=fq2-a3PeDSiUi-8u"
+                    src="https://www.youtube.com/embed/QlFNgswyS_M?si=NAhF1xjNnQIW9htb"
                     title="YouTube video player"
                     frameborder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -514,6 +515,8 @@ const Home = () => {
           </div>
         </div>
       </section>
+      <Footer />
+
     </>
   );
 };

@@ -1,8 +1,12 @@
 import React from "react";
+import Footer from "../Pages/Footer";
+import Navbar from "./Navbar";
 
 const TermsCondition = () => {
     return (
         <>
+            <Navbar />
+
             <section>
                 <div className="container">
                     <div className="row mt-5">
@@ -46,6 +50,8 @@ const TermsCondition = () => {
                     </div>
                 </div>
             </section>
+            <Footer />
+
         </>
     );
 };

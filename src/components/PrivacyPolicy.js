@@ -1,8 +1,11 @@
 import React from "react";
+import Footer from "../Pages/Footer";
+import Navbar from "./Navbar";
 
 const PrivacyPolicy = () => {
     return (
         <>
+            <Navbar />
             <section>
                 <div className="container">
                     <div className="row mt-5">
@@ -31,6 +34,8 @@ const PrivacyPolicy = () => {
                     </div>
                 </div>
             </section>
+            <Footer />
+
         </>
     );
 };

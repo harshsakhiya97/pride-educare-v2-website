@@ -9,6 +9,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Modal from "react-bootstrap/Modal";
 import StarRatings from "react-star-ratings";
+import Footer from "./Footer";
 
 const settings = {
   dots: false,
@@ -893,6 +894,8 @@ const BuyNow = () => {
           </div>
         </div>
       </section>
+      <Footer />
+
     </>
   );
 };

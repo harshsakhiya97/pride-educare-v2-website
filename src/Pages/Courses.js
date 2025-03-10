@@ -4,6 +4,7 @@ import { NavLink } from "react-router-dom";
 import axios from "../helper/axios";
 import { AuthContext } from "../context/AuthContext";
 import placeholderSvg from "../assets/prideplaceholder.svg";
+import Footer from "./Footer";
 
 const Courses = () => {
   const defaultData = [];
@@ -17,7 +18,7 @@ const Courses = () => {
 
   const fetchCourses = async () => {
     try {
-      const param = {  };
+      const param = {};
       const response = await axios.post("course/listWithCategory", param, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -192,6 +193,8 @@ const Courses = () => {
       </>
       ) : (<></>)
       }
+
+      <Footer />
 
     </>
   );

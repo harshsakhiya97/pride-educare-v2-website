@@ -1,5 +1,6 @@
 import React from "react";
 import DashboardNavbar from "../components/DashboardNavbar";
+import Footer from "../Pages/Footer";
 
 const AboutUs = () => {
   return (
@@ -144,6 +145,8 @@ const AboutUs = () => {
           </div>
         </div>
       </section>
+      <Footer />
+
     </>
   );
 };
