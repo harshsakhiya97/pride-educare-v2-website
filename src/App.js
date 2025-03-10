@@ -28,11 +28,11 @@ function App() {
       <HashRouter>
         <ScrollToTop />
         <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/p/:link" element={<ShortLink />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/contact-us" element={<ContactUs />} />
-        <Route path="/terms-condition" element={<TermsCondition />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/p/:link" element={<ShortLink />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/contact-us" element={<ContactUs />} />
+          <Route path="/terms-condition" element={<TermsCondition />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Registration />} />
           <Route path="/buy-now/:id" element={<BuyNow />} />

@@ -71,7 +71,7 @@ const Courses = () => {
                 <div className="course-category-title col-2 text-center">
                   <a
                     className="text-decoration-none pe-auto"
-                    href={`#${course.category.name}`}
+                    href={`/#/courses`}
                   >
                     {course.category.field1 != null ? (
                       <img
