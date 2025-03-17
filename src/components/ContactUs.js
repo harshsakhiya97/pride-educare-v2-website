@@ -80,7 +80,7 @@ const ContactUs = () => {
                 <div className="col-10">
                   <p className="my-4">
                     <b>Name:</b> Pride Educare Pvt. Ltd. <br />
-                    <b>Contact No:</b> +91 76300 76300 <br />
+                    <b>Contact No:</b> +91 99410 31031 <br />
                     <b>Email:</b> app.prideeducare@gmail.com <br />
                     <b>Address:</b> Om co-operating Housing Society, 24/192, Santacruz – Chembur Link Rd, next to Sanskar classes &, near vakola, Anand Nagar, Vakola, Police station, Mumbai, Maharashtra 400055. <br />
                   </p>

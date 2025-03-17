@@ -14,7 +14,7 @@ const Footer = () => {
         <div className="footer-box">
           <h6 className=" fs-28-18 mb-2 lato-regular white">Contact Us</h6>
           <p className=" fs-16-12 lato-regular pointer white">
-            <a href="tel:+917630076300">+91 76300 76300</a> <br />
+            <a href="tel:+919941031031">+91 99410 31031</a> <br />
             <a href="mailto:app.prideeducare@gmail.com">app.prideeducare@gmail.com</a>
           </p>
         </div>
